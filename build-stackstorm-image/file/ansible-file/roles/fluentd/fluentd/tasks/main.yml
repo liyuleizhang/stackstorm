@@ -1,0 +1,26 @@
+---
+
+- name: create fluentd directory
+  file: path=/opt/chinacloud/fluentd state=directory mode=0755
+
+- name: create fluentd etc directory
+  file: path=/opt/chinacloud/fluentd/etc state=directory mode=0755
+
+- name: create fluentd log directory
+  file: path=/opt/chinacloud/fluentd/log state=directory mode=0777
+
+- name: add fluentd configure
+  template: src=fluent.conf.j2 dest=/opt/chinacloud/fluentd/etc/fluent.conf
+
+- name: Re-create fluentd container
+  docker_container:
+    name: fluentd
+    image: "{{ docker_registry }}/fluent/fluentd:v1.9-1"
+    state: started
+    recreate: yes
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    volumes:
+      - "/opt/chinacloud/fluentd/etc/fluent.conf:/fluentd/etc/fluent.conf"
+      - "/opt/chinacloud/fluentd/log:/fluentd/log"

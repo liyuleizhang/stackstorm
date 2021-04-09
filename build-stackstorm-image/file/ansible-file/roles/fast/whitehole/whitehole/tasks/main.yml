@@ -1,0 +1,106 @@
+---
+
+- name: set variables
+  set_fact:
+    ONEX_IP: "{% if ONEX_VIP is defined and ONEX_VIP != '' %} {{ ONEX_VIP }} {% else %} {{ hostvars[groups['onex_servers'][0]]['ansible_host'] }} {% endif %}"
+    MYSQL_IP: "{% if db_ip %}{{ db_ip }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}{{ ansible_default_ipv4.address }}{% else %}{{ hostvars[groups['mysql'][0]]['ansible_host'] }}{% endif %}"
+    MYSQL_PASSWORD: "{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}"
+    MYSQL_PORT: "{% if db_port %}{{ db_port }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}6446{% else %}3306{% endif %}"
+    RABBITMQ_ADDRESS: "{% for host in groups['rabbitmq_servers'] -%} {{ hostvars[host]['ansible_host'] }}:{%- if rabbitmq_port -%}{{ rabbitmq_port }}{%- else -%}5672{%- endif -%}{%- if loop.nextitem is defined -%},{%- endif -%} {%- endfor %}"
+    ZOOKEEPER_ADDRESS: "{% for host in groups['zookeeper_servers'] -%} {{ hostvars[host]['ansible_host'] }}:{%- if zookeeper_port -%}{{ zookeeper_port }}{%- else -%}2181{%- endif -%}{%- if loop.nextitem is defined -%},{%- endif -%} {%- endfor %}"
+
+- name: Install mariadb
+  yum: name=mariadb update_cache=yes state=installed use_backend=yum
+
+- name: create /whitehole directory
+  file: path=/opt/chinacloud/whitehole state=directory mode=0755
+
+- name:  stop whitehole
+  shell: cd /opt/chinacloud/whitehole   && docker-compose -f ./docker-compose.yml  down
+  ignore_errors: yes
+
+- name: backup old whitehole version
+  shell: tar -cf /opt/chinacloud/whitehole-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/whitehole && rm -rf  /opt/chinacloud/whitehole/*
+
+- name: copy whitehole file to /opt/chinacloud/whitehole
+  copy: src=whitehole-{{WH_VERSION}}/ dest=/opt/chinacloud/whitehole/  mode=0755
+
+# 生成fast-wh-with-logback.config
+- name: generate fast-wh-with-logback.config
+  template:
+    src: fast-wh-with-logback.config.j2
+    dest: /opt/chinacloud/whitehole/fast-wh-with-logback.config
+
+# 生成fast.config
+- name: generate fast.config
+  template:
+    src: fast.config.j2
+    dest: /opt/chinacloud/whitehole/fast.config
+
+# 生成mysql-router.env
+- name: generate mysql-router.env
+  template:
+    src: mysql-router.env.j2
+    dest: /opt/chinacloud/whitehole/mysql-router.env
+  when: ONEX_VIP is defined and ONEX_VIP != ''
+
+- name: generate whui-all-in-one.conf
+  template:
+    src: whui-all-in-one.conf.j2
+    dest: /opt/chinacloud/whitehole/whui-all-in-one.conf
+
+# 生成docker-compose.yml
+- name: generate docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/chinacloud/whitehole/docker-compose.yml
+  when: ONEX_VIP is not defined or ONEX_VIP == ''
+
+- name: generate ha docker-compose.yml
+  template:
+    src: docker-compose.yml.ha.j2
+    dest: /opt/chinacloud/whitehole/docker-compose.yml
+  when: ONEX_VIP is defined and ONEX_VIP != ''
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh   mode=0755
+
+- name: replace fast-onex ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {ONEX_IP}   {{ ONEX_IP }}
+
+- name: replace hubble-broker ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {HUBBLE_BROKER_IP}  {{ hostvars[groups['hb_broker'][0]]['ansible_host'] }}
+
+- name: replace hubble ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {HUBBLE_IP}   {{ hostvars[groups['hb_standalone'][0]]['ansible_host'] }}
+  ignore_errors: yes
+
+- name: replace whitehole version
+  shell: /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {WH_FLOW_VERSION}  {{WH_FLOW_VERSION}} && /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {WH_BUSINESS_VERSION}  {{WH_BUSINESS_VERSION}} && /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {WH_EVENT_VERSION}  {{WH_EVENT_VERSION}} && /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {WH_STATISTICS_VERSION}  {{WH_STATISTICS_VERSION}} && /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {WSO2_SERVICE_BK_VERSION}  {{WSO2_SERVICE_BK_VERSION}} && /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {WHUI_ALLINONE_VERSION}  {{WHUI_ALLINONE_VERSION}} && /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {STATISTICS_UI_VERSION} {{STATISTICS_UI_VERSION}} \
+        && /tmp/init-ip.sh  /opt/chinacloud/whitehole/  {STATISTICS_API_VERSION}  {{STATISTICS_API_VERSION}}
+
+- name:  pull whitehole images
+  shell: cd /opt/chinacloud/whitehole && docker-compose  -f ./docker-compose.yml pull
+
+- name:  start whitehole
+  shell: cd /opt/chinacloud/whitehole/ && docker-compose -f ./docker-compose.yml  up -d
+  async: 0
+
+- name:  find init db file
+  shell: find  /opt/chinacloud/whitehole/initdb/ -type f
+  register: init_db_result
+  ignore_errors: yes
+
+- name:  initdb
+  #shell: mysql --default-character-set=utf8 -h{% if db_ip %}{{ db_ip }}{% else %}{{ hostvars[groups['mysql'][0]]['ansible_host'] }}{% endif %} -P{% if db_port %}{{ db_port }}{% else %}6446{% endif %} -u{% if db_user %}{{ db_user }}{% else %}root{% endif %} -p{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}  < {{ item }}
+  shell: mysql --default-character-set=utf8 -h{{ MYSQL_IP }} -P{{ MYSQL_PORT }} -u{% if db_user %}{{ db_user }}{% else %}root{% endif %} -p{{ MYSQL_PASSWORD }}  < {{ item }}
+  with_items: "{{init_db_result.stdout_lines}}"
+  run_once: true
+  ignore_errors: yes
+
+- name: Waiting for whitehole come alive
+  action: shell docker-compose -f /opt/chinacloud/whitehole/docker-compose.yml ps | grep "(healthy)" | wc -l
+  register: result
+  until: result.stdout.find( '9' if ONEX_VIP is defined and ONEX_VIP != '' else '8') != -1
+  retries: 20
+  delay: 10

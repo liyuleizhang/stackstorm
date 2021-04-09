@@ -1,0 +1,1 @@
+../../../../mgr/files/mysql_mgr/mysql-init-sql/fast-wso2-userdb-init.sql

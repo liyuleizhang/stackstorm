@@ -1,0 +1,4 @@
+greenplum_admin_user: "gpadmin"
+
+master_data_directory: "/data/gpmaster"
+master_conf_directory: "/etc/greenplum"

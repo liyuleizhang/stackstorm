@@ -1,0 +1,9 @@
+{% if node_type == "disc" %}
+rabbitmqctl stop_app
+rabbitmqctl join_cluster  rabbitmq{{ hostvars[groups['rabbitmq_first'][0]]['node_id']}}@{{ hostvars[groups['rabbitmq_first'][0]]['ansible_hostname']}}
+rabbitmqctl start_app
+{% else %}
+rabbitmqctl stop_app
+rabbitmqctl join_cluster  --ram  rabbitmq{{ hostvars[groups['rabbitmq_first'][0]]['node_id']}}@{{ hostvars[groups['rabbitmq_first'][0]]['ansible_hostname']}}
+rabbitmqctl start_app
+{% endif %}

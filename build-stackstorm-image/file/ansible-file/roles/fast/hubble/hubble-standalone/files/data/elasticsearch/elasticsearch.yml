@@ -1,0 +1,12 @@
+cluster.name: escluster
+network.host: 0.0.0.0
+http.port: 9200
+transport.tcp.port: 9300
+discovery.zen.ping.unicast.hosts: ["0.0.0.0"]
+
+index:
+ analysis:
+   analyzer:
+     LowAnalyzer:
+        tokenizer: keyword
+        filter: [lowercase]

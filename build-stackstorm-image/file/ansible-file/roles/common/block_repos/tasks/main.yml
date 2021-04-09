@@ -1,0 +1,21 @@
+---
+
+- name: Find repo files
+  find:
+    paths: /etc/yum.repos.d
+    patterns: '*.repo'
+    recurse: yes
+  register: find_logs
+
+- name: Backup origin repo files
+  copy:
+    src: "{{ item.path }}"
+    dest: "{{ item.path }}.backup"
+    remote_src: True
+  with_items:
+    - "{{ find_logs.files }}"
+
+- name: Remove origin repo files
+  file: path={{ item.path }} state=absent
+  with_items:
+    - "{{ find_logs.files }}"

@@ -1,0 +1,19 @@
+- name: Create the hosts file for all machines
+  template: src=hosts.j2 dest=/etc/hosts
+  debugger: on_failed
+
+- name: Change the hostname to our standard
+  hostname: name="{{ inventory_hostname }}"
+  when: ansible_hostname != inventory_hostname
+
+- name: restart machine
+  reboot:
+    reboot_timeout: 300
+  when: ansible_hostname != inventory_hostname
+
+- name: Validate ansible_hostname == inventory_hostname
+  tags:
+    - validate
+  assert:
+    that:
+      ansible_hostname == inventory_hostname

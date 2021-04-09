@@ -1,0 +1,15 @@
+{
+  "header":[{
+    "name":"平台管理",
+    "href":"fast.admin.home.loginLog",
+    "url":"/fast-admin/default"
+  }],
+  "systemId": "0",
+  "defaultUrl":"/fast-admin/admin/home/login-log",
+  "isOnlinePermission":"true",
+  "isHeaderDownMenu":"true",
+  "isFront": false,
+  "monitorOrigin": "http://{MONITOR_ORIGIN}:3000",
+  "monitorPlatformUrl": "/d/test-frontend/qian-zhi-ji-jian-kong?refresh=5m&orgId=1",
+  "monitorFrontend": "/d/test-frontend/qian-zhi-ji-jian-kong?refresh=5m&orgId=1"
+}

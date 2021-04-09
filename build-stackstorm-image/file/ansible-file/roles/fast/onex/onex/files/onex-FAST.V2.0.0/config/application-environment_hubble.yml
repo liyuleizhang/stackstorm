@@ -1,0 +1,16 @@
+#fast group environment config
+fast:
+  # hubble group environment config
+  hubble:
+    datasource:
+      username: root
+      passwd: {MYSQL_PASSWORD}
+      host: {HUBBLE_MYSQL_IP}
+      port: {HUBBLE_MYSQL_PORT}
+    task:
+      corePoolSize: 5
+      maxPoolSize: 7
+      queueSize: 10
+    heartbeat:
+      rate: 30000
+      timeout: 150000

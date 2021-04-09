@@ -1,0 +1,13 @@
+---
+
+install_yum_packages:
+  - sshpass
+  - geoipupdate
+  - e2fsprogs
+  - e2fsprogs-libs
+  - zip
+  - bzip2
+  - libevent
+  - net-tools
+  - lsof
+  - rsync

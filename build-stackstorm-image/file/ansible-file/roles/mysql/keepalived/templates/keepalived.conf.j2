@@ -1,0 +1,39 @@
+! Configuration File for keepalived
+global_defs {
+    router_id LVS_DEVEL
+}
+
+vrrp_script check_run {
+    script "/opt/chinacloud/mysql_mgr/mysql_check.sh"
+    interval 300
+}
+
+vrrp_sync_group VG1 {
+    group {
+        VI_1
+    }
+}
+
+vrrp_instance VI_1 {
+    state {{ vrrp_state }}
+    interface {{ vrrp_interface_name }}
+    virtual_router_id 40
+    priority {{ vrrp_priority }}
+    advert_int 1
+    {% if vrrp_state == 'BACKUP' %}
+    nopreempt
+    {% endif %}
+    authentication {
+        auth_type PASS
+        auth_pass 571f97b2
+    }
+    track_script {
+        check_run
+    }
+    # notify_master /data/sh/master.sh
+    # notify_backup /data/sh/backup.sh
+    # notify_stop /data/sh/stop.sh
+    virtual_ipaddress {
+        {{ vrrp_vip }} brd {{ vrrp_brd }} dev {{ vrrp_interface_name }}
+    }
+}

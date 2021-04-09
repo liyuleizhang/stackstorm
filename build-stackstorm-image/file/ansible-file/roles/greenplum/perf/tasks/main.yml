@@ -1,0 +1,103 @@
+---
+# TODO: 未验证操作系统优化参数
+
+- name: disable firewall
+  service:
+    name: firewalld
+    enabled: no
+    state: stopped
+
+- name: disable selinux persistently
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
+
+- name: disable selinux
+  shell: setenforce 0
+  ignore_errors: true
+
+- name: copy sysctl.conf
+  copy: src=sysctl.conf dest=/etc/sysctl.conf
+
+- name: copy limits.conf
+  copy: src=limits.conf dest=/etc/security/limits.conf
+
+- name: copy 20-nproc.conf
+  copy: src=20-nproc.conf dest=/etc/security/limits.d/20-nproc.conf
+
+- name: Reboot machines, waiting for 300s
+  reboot:
+    reboot_timeout: 300
+
+# TODO: Disk I/O Settings - Read-ahead value
+# /sbin/blockdev --setra 16384 /dev/sdb
+
+# TODO: Disk I/O scheduler
+# echo deadline > /sys/block/sbd/queue/scheduler
+
+# TODO: Transparent Huge Pages (THP)
+# grubby --update-kernel=ALL --args="transparent_hugepage=never"
+
+# TODO: 确认是否需要关闭swap
+# - name: disable swap
+#   shell: swapoff -a
+
+# - name: disable swap in fstab
+#   replace:
+#     path: /etc/fstab
+#     regexp: '^(.+?\sswap\s+swap\s+.*)$'
+#     replace: '#\1'
+#     backup: yes
+
+# TODO：确认是否需要关闭透明大页
+# - name: disable hugepage
+#   shell: >
+#     echo never > /sys/kernel/mm/transparent_hugepage/defrag;
+#     echo never > /sys/kernel/mm/transparent_hugepage/enabled;
+
+# - name: disable hugepage persistently
+#   blockinfile:
+#     path: /etc/rc.d/rc.local
+#     block: |
+#       if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+#         echo never > /sys/kernel/mm/transparent_hugepage/enabled
+#       fi
+#       if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+#         echo never > /sys/kernel/mm/transparent_hugepage/defrag
+#       fi
+#     marker: "#{mark} disable hugepage"
+#     insertbefore: 'exit 0'
+#     owner: root
+#     group: root
+#     mode: "0755"
+#     create: yes
+#     backup: yes
+
+# TODO: Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10
+# - name: vm.swappiness
+#   sysctl:
+#     name: vm.swappiness
+#     value: '{{ sysctl_vm_swappiness }}'
+#     reload: yes
+#   when: sysctl_vm_swappiness is defined and sysctl_vm_swappiness > 0
+
+# - name: vm.overcommit_memory
+#   sysctl:
+#     name: vm.overcommit_memory
+#     value: '{{ sysctl_vm_overcommit_memory }}'
+#     reload: yes
+#   when: sysctl_vm_overcommit_memory is defined and sysctl_vm_overcommit_memory >= 0 and sysctl_vm_overcommit_memory <= 3
+
+# - name: net.core.somaxconn
+#   sysctl:
+#     name: net.core.somaxconn
+#     value: '{{ sysctl_net_core_somaxconn }}'
+#     reload: yes
+#   when: sysctl_net_core_somaxconn is defined and sysctl_net_core_somaxconn > 0
+
+# - name: chmod /etc/rc.d/rc.local
+#   file:
+#     path: /etc/rc.d/rc.local
+#     state: file
+#     mode: '0755'

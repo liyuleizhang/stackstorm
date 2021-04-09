@@ -1,0 +1,5 @@
+RUN_ARGS="--eurekaUrl={%- for host in groups['onex_servers'] -%}
+        http://{{hostvars[host]['ansible_host']}}:18087/eureka/
+    {%- if loop.nextitem is defined %},{% endif -%} 
+{%- endfor %} "
+JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF8 -Duser.timezone=GMT+08 -Dlog4j.configurationFile=file:/apps/log4j2.xml -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"

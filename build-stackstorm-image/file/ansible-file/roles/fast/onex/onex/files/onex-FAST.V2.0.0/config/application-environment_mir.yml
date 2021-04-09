@@ -1,0 +1,36 @@
+#fast group environment config
+fast:
+  #mir group environment config
+  mir:
+    datasource:
+      username: root
+      passwd: chinacloudroot
+    harbor:
+      username: admin
+      password: Harbor12345
+      protocol: http://
+      registry: hub.chinacloud.com
+    monitor:
+      promthus-port: 19520
+      namespace: kube-system
+      serviceName: prometheus-service
+      portName: prometheus
+    icon:
+      path: assets/images/icon/app/com_docker.png
+    image:
+      builder-server: http://localhost:12375
+      file-download-path: http://{ONEX_IP}:8084/one-infrastructure-api/api/v1/files/
+
+    k8s:
+      file-download-path: http://{ONEX_IP}:8084/one-infrastructure-api/api/v1/files/{fileInfoId}/types/{type}
+      init-files-resource-path: http://{ONEX_IP}:8084/mir-application-api/api/v1/tenants/{tenantId}/namespaces/{namespace}/apps/{appId}/services/{serviceName}/init-files
+    istio:
+      system:
+        used:
+          cpu: 0 #m
+          memory: 0 #mb
+    node:
+      resource:
+        reserved:
+          cpu: 1000 #m
+          ram: 1024 #mb

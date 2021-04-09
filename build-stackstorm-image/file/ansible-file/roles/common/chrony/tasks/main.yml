@@ -1,0 +1,31 @@
+---
+
+- name: ensure chrony is installed
+  yum:
+    name: chrony
+    state: installed
+    update_cache: yes
+    use_backend: yum
+
+- set_fact:
+    chrony_server: "{{ ntp_idc_server if (ntp_idc_server is defined and ntp_idc_server) else hostvars[groups['servers'][0]]['ansible_default_ipv4']['address'] }}"
+
+- debug:
+    var: chrony_server
+    verbosity: 1
+
+- name: Create chrony key file
+  template: src=chrony.keys dest=/etc/chrony.keys
+
+- name: Create chrony configuration file
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+  notify:
+    - restart chrony
+
+- name: ensure chronyd is running
+  service:
+    name: chronyd
+    state: started
+    enabled: yes

@@ -1,0 +1,16 @@
+version: '2.1'
+services:
+  zookeeper:
+    image: hub.chinacloud.com.cn/common.dev/zookeeper:3.4.10
+    container_name: zookeeper
+    restart: always
+    healthcheck:
+      test: zkServer.sh status
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - /etc/localtime:/etc/localtime
+    network_mode: "host"
+
+

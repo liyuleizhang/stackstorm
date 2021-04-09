@@ -1,0 +1,24 @@
+---
+
+- name: Install python3
+  yum:
+    name:
+    - python3
+    update_cache: yes
+    state: installed
+    use_backend: yum
+
+- name: Upgrade pip
+  pip:
+    name: pip
+    extra_args: -i {{ pypi_index }} --upgrade
+    executable: pip3
+
+- name: Install tensorflow and tensorflowonspark
+  pip:
+    name:
+      - tensorflow
+      - tensorflowonspark
+    extra_args: -i {{ pypi_index }} --upgrade
+    executable: pip3
+    state: latest

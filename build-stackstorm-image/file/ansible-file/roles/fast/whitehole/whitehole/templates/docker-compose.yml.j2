@@ -1,0 +1,162 @@
+version: '2.1'
+services:
+  whitehole-flow:
+    image: {{ docker_registry }}/fast-wh.rel/whitehole-flow:${FAST_WH_FLOW_TAG}
+    container_name: whitehole-flow
+    restart: always
+    volumes:
+      - ./fast-wh-with-logback.config:/apps/whitehole-flow.conf:z
+      - ./log4j2.xml:/apps/log.xml:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./whitehole-flow.env
+    network_mode: "host"
+    healthcheck:
+      test: ["CMD", "curl", "-H", "Authorization: Basic a2VybWl0Omtlcm1pdA==", "-f", "http://localhost:8086/activiti-rest/health"]
+      interval: 1m10s
+      timeout: 30s
+      retries: 3
+
+  whitehole-business:
+    image: {{ docker_registry }}/fast-wh.rel/whitehole-business:${FAST_WH_BUSINESS_TAG}
+    container_name: whitehole-business
+    restart: always
+    volumes:
+      - ./fast-wh-with-logback.config:/apps/whitehole-business.conf:z
+      - ./logback.xml:/apps/log.xml:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./whitehole-business.env
+    network_mode: "host"
+    depends_on:
+      whitehole-flow:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8087/business/health
+      interval: 1m30s
+      timeout: 30s
+      retries: 3
+
+  whitehole-event:
+    image: {{ docker_registry }}/fast-wh.rel/whitehole-event:${FAST_WH_EVENT_TAG}
+    container_name: whitehole-event
+    restart: always
+    volumes:
+      - ./fast-wh-with-logback.config:/apps/whitehole-event.conf:z
+      - ./log4j2.xml:/apps/log.xml:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./whitehole-event.env
+    network_mode: "host"
+    depends_on:
+      whitehole-business:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8088/event/v1/health
+      interval: 1m30s
+      timeout: 30s
+      retries: 3
+
+  whitehole-statistics:
+    image: {{ docker_registry }}/fast-wh.rel/whitehole-statistics:${FAST_WH_STATISTICS_TAG}
+    container_name: whitehole-statistics
+    restart: always
+    volumes:
+      - ./fast.config:/apps/whitehole-statistics.conf:z
+      - ./log4j2.xml:/apps/log.xml:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./whitehole-statistics.env
+    network_mode: "host"
+    depends_on:
+      whitehole-business:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8089/statistics/health
+      interval: 1m30s
+      timeout: 30s
+      retries: 3
+
+  wso2-service-broker:
+    image: {{ docker_registry }}/fast-wh.rel/wso2-service-broker:${FAST_WH_WSO2_SERVICE_BROKER_TAG}
+    container_name: wso2-service-broker
+    restart: always
+    volumes:
+      - ./fast.config:/apps/wso2-service-broker.conf:z
+      - ./logback.xml:/apps/log.xml:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./wso2-service-broker.env
+    network_mode: "host"
+    depends_on:
+        whitehole-business:
+          condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8090/broker/ahgj/apiService?url=%7beventUrl%7d
+      interval: 1m30s
+      timeout: 30s
+      retries: 3
+
+  whui-all-in-one:
+    image: {{ docker_registry }}/fast-wh.rel/whui-all-in-one:${FAST_WHUI_ALL_IN_ONE_TAG}
+    container_name: whui-all-in-one
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./whui-all-in-one.conf:/etc/nginx/conf.d/whui-all-in-one.conf:z
+      - ./user-keycloak.json:/usr/share/nginx/html/whitehole-ui/keycloak.json
+      - ./ui-config/user_config.json:/usr/share/nginx/html/whitehole-ui/config/config.json
+      #- ./ui-config/admin_nav.json:/usr/share/nginx/html/whitehole-admin-ui/config/nav.json
+      - ./admin-keycloak.json:/usr/share/nginx/html/whitehole-admin-ui/keycloak.json
+      - ./ui-config/admin_config.json:/usr/share/nginx/html/whitehole-admin-ui/config/config.json
+      - /etc/localtime:/etc/localtime
+    depends_on:
+      whitehole-event:
+        condition: service_healthy
+      whitehole-statistics:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:86/wh-ui/
+      interval: 10s
+      timeout: 30s
+      retries: 20
+
+  statistics-ui:
+    image: {{ docker_registry }}/fast-wh.rel/statistics-ui:${FAST_STATISTICS_UI_TAG}
+    container_name: statistics-ui
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./statistics-ui.conf:/etc/nginx/conf.d/statistics-ui.conf:z
+      - ./admin-keycloak.json:/usr/share/nginx/html/statistics-ui/keycloak.json
+      - /etc/localtime:/etc/localtime
+      - ./ui-config/partition.json:/usr/share/nginx/html/statistics-ui/config/partition.json:z
+    depends_on:
+      whitehole-event:
+        condition: service_healthy
+      whitehole-statistics:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:81/statistics-ui/
+      interval: 10s
+      timeout: 30s
+      retries: 20
+
+  statistics-api:
+    image: {{ docker_registry }}/fast-wh.rel/statistics-api:${FAST_STATISTICS_API_TAG}
+    container_name: statistics-api
+    restart: always
+    mem_limit: 1024m
+    mem_reservation: 100m
+    volumes:
+      - ./fast.config:/apps/statistics-api.conf:z
+      - ./logback.xml:/apps/log.xml:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./statistics-api.env
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:8092/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+      retries: 3

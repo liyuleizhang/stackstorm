@@ -1,0 +1,4 @@
+version: "6.2.1"
+greenplum_admin_user: "gpadmin"
+greenplum_admin_password: "changeme"
+package_name: "greenplum-db-{{ version }}-rhel7-x86_64.rpm"

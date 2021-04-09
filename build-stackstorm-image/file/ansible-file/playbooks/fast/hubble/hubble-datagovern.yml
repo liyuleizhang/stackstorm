@@ -1,0 +1,9 @@
+---
+
+- hosts: hb_standalone
+  roles:
+    - fast/hubble/hubble-standalone
+
+- hosts: hb_nifi
+  roles:
+    - fast/hubble/hubble-nifi

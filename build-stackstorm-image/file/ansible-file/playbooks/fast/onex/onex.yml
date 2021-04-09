@@ -1,0 +1,4 @@
+---
+- hosts: onex-basic
+  roles:
+    - fast/onex/onex

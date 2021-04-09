@@ -1,0 +1,9 @@
+---
+
+# 备份/etc/yum.repos.d下所有repo文件
+# 使用场景：屏蔽所有机器原有的yum源配置，以便后续使用产品的yum源。
+- name: Block repos
+  hosts: servers,!registry
+  roles:
+    - common/block_repos
+  tags: block_repos

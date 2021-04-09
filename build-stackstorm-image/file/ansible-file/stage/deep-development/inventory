@@ -1,0 +1,188 @@
+# ！需要在部署机设置所有节点host
+# ！所有节点hostanme不应该包含“.”，见： https://tools.ietf.org/html/rfc952
+# ！ 节点规划注意事项
+# 1. 星盘节点不能与onxe部署在同一节点，80端口冲突；
+# 2. fast common zookeeper与CDH不能部署在同节点，2181端口冲突。
+
+registry ansible_host=172.16.60.24 ansible_port=22 ansible_user=root ansible_password=chinacloud
+
+# deep apps
+# app01   ansible_host=172.16.1.30   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# app02   ansible_host=172.16.1.31   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# app03   ansible_host=172.16.1.32   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# app04   ansible_host=172.16.1.33   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# app05   ansible_host=172.16.1.34   ansible_port=22     ansible_user=root   ansible_password=hadoop
+
+# deep minions
+# openstack_cc ansible_host=172.16.0.201 ansible_port=22 ansible_user=root ansible_password=huacloud
+app01 ansible_host=172.16.1.30 ansible_port=22 ansible_user=root ansible_password=hadoop
+
+########################################################################################################
+# Common Groups
+########################################################################################################
+
+[registry_server]
+registry chrony_role=server
+
+[servers:children]
+registry_server
+fast_servers
+cdh_servers
+gp_servers
+mysql_servers
+rabbitmq_servers
+zookeeper_servers
+
+[servers:vars]
+# 安装Docker的节点，需要排除registry节点。因为安装Docker过程中，会重启Docker，导致部署过程中断。
+docker_hosts=servers,!registry,!mysql,!rabbitmq,!zookeeper # mysql、rabbitmq、zookeeper部署在registry节点时，需要同时排除这三个节点。
+
+########################################################################################################
+# Monitoring Groups
+########################################################################################################
+
+[monitoring-master]
+
+[monitoring-minion:children]
+
+########################################################################################################
+# Deep Groups
+########################################################################################################
+
+[deep_minion] # 此角色只安装Deep agent，不安装其他内容，所以不在servers group中。
+# openstack_cc
+app01
+
+########################################################################################################
+# FAST Groups
+########################################################################################################
+
+[onex-basic]
+
+[onex-extension]
+
+[onex_servers:children]
+onex-basic
+onex-extension
+
+[fast-basic] # 未确认角色用途？
+
+[wh_servers]
+
+[hb_metagrid]
+
+[hb_standalone]
+
+[hb_kettle]
+
+[hb_nifi]
+
+[hb_stargate]
+
+[hb_broker]
+
+[hubble_servers:children]
+hb_metagrid
+hb_stargate
+hb_kettle
+hb_nifi
+hb_broker
+
+[fast_servers:children]
+fast-basic
+onex_servers
+wh_servers
+hubble_servers
+
+########################################################################################################
+# CDH Groups
+########################################################################################################
+
+[scm_server]
+
+[db_server]
+
+[krb5_server]
+
+[utility_servers:children]
+scm_server
+db_server
+krb5_server
+
+[gateway_servers]
+cdh01 host_template=HostTemplate-Gateway
+
+[edge_servers]
+cdh01 host_template=HostTemplate-Edge role_ref_names=HDFS-HTTPFS-1
+
+[master_servers]
+# <host> host_template=HostTemplate-Master2
+# <host> host_template=HostTemplate-Master3
+
+[worker_servers]
+
+[worker_servers:vars]
+host_template=HostTemplate-Workers
+
+[cdh_servers:children]
+utility_servers
+gateway_servers
+master_servers
+worker_servers
+
+########################################################################################################
+# Greenplum Groups
+########################################################################################################
+
+[gpmaster_servers]
+
+[gpsegment_servers]
+
+[gp_servers:children]
+
+########################################################################################################
+# Mysql Groups
+########################################################################################################
+
+[mysql]
+
+[mgr_primary]
+
+[mgr_slave]
+
+[mgr_servers:children]
+mgr_primary
+mgr_slave
+
+[mysql_servers:children]
+mysql
+mgr_servers
+
+########################################################################################################
+# RabbitMQ Groups
+########################################################################################################
+
+[rabbitmq] # 单节点部署组
+
+[rabbitmq_first] # RabbitMQ集群第一个节点，用于初始集群的操作
+
+[rabbitmq_node] # RabbitMQ其他节点，可以部署多个； node_type代表节点在集群中是 磁盘节点（disc）还是内存节点（ram）
+
+[rabbitmq_servers:children]
+rabbitmq
+rabbitmq_first
+rabbitmq_node
+
+########################################################################################################
+# Zookeeper Groups
+########################################################################################################
+
+[zookeeper] # 单节点部署组
+
+[zookeeper_ha] # 集群部署组
+
+[zookeeper_servers:children]
+zookeeper
+zookeeper_ha
+
+

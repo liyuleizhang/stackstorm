@@ -1,0 +1,67 @@
+<source>
+  @type  forward
+  @id    input1
+  @label @mainstream
+  port  24224
+</source>
+
+<filter **>
+  @type stdout
+</filter>
+
+<label @mainstream>
+  <match kernel.**>
+    @type file
+    @id   output1_kernel
+    path         /fluentd/log/kernel.*.log
+    append       true
+    time_slice_format %Y%m%d
+    time_slice_wait   1m
+    time_format       %Y%m%dT%H%M%S%z
+  </match>
+  <match cpu.**>
+    @type file
+    @id   output1_cpu
+    path         /fluentd/log/cpu.*.log
+    append       true
+    time_slice_format %Y%m%d
+    time_slice_wait   1m
+    time_format       %Y%m%dT%H%M%S%z
+  </match>
+  <match disk-all.**>
+    @type file
+    @id   output1_disk-all
+    path         /fluentd/log/disk-all.*.log
+    append       true
+    time_slice_format %Y%m%d
+    time_slice_wait   1m
+    time_format       %Y%m%dT%H%M%S%z
+  </match>
+  <match systemd.**>
+    @type file
+    @id   output1_systemd
+    path         /fluentd/log/systemd.*.log
+    append       true
+    time_slice_format %Y%m%d
+    time_slice_wait   1m
+    time_format       %Y%m%dT%H%M%S%z
+  </match>
+  <match container.**>
+    @type file
+    @id   output1_container
+    path         /fluentd/log/container.*.log
+    append       true
+    time_slice_format %Y%m%d
+    time_slice_wait   1m
+    time_format       %Y%m%dT%H%M%S%z
+  </match>
+  <match **>
+    @type file
+    @id   output1
+    path         /fluentd/log/data.*.log
+    append       true
+    time_slice_format %Y%m%d
+    time_slice_wait   10m
+    time_format       %Y%m%dT%H%M%S%z
+  </match>
+</label>

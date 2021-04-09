@@ -1,0 +1,39 @@
+#fast group environment config
+fast:
+
+  #whitehole group environment config
+  wh:
+    datasource:
+      username: root
+      passwd: chinacloudroot
+    wso2:
+      publisherUrl: https://{WSO2_AM_PUBLISHER_URL}/api/am/publisher/v0.11
+      storeUrl: https://{WSO2_AM_STORE_URL}/api/am/store/v0.11
+      url: https://{WSO2_AM_URL}/api/am
+      gatewayUrl: http://{WSO2_GATEWAY_URL}
+      serviceBrokerUrl: http://{WSO2_SERVICE_BROKER_URL}/broker/ahgj/apiService?url={eventUrl}
+      queryKey: Bearer {WSO2_QUERY_KEY}
+      operateKey: Bearer {WSO2_OPERATE_KEY}
+      publisherKey: Bearer {WSO2_PUBLISHER_KEY}
+      subscribtionKey: Bearer {WSO2_SUBSCRIBTION_KEY}
+      tireQueryKey: Bearer {WSO2_TIREQUERY_KEY}
+      subscriptionBlockKey: Bearer {WSO2_SUBSCRIPTION_BLOCK_KEY}
+    dataset:
+      static:
+        serviceBrokerUrl: http://{HUBBLE_IP}:18084/broker/v1/datasets/statics?url={eventUrl}
+        fileDownloadUrl: http://{HUBBLE_IP}:18084/broker/v1/datasets/statics
+      dynamic:
+        serviceBrokerUrl: http://{HUBBLE_IP}:18084/broker/v1/datasets/dynamics?url={eventUrl}
+        fileDownloadUrl: http://{HUBBLE_IP}:18084/broker/v1/datasets/dynamics
+    dataAggregation:
+      serviceBrokerUrl: http://{HUBBLE_IP}:16012/dataAggregation/serviceBroker/service/event?url={eventUrl}
+    metagrid:
+      url: http://{ONEX_IP}/hubble/metagrid/
+      client_id: 3fc183d6-c5d5-4528-9ee7-e03e5b4dd1ea
+      secret: a99778d9-8868-46bf-a8c8-971e8cd00884
+    hdfs:
+      server: hdfs://{HDFS_NAMENODE_IP}:{HDFS_NAMENODE_PORT}
+      dirPath: /tmp/whitehole_files1/
+      host: {HDFS_NAMENODE_IP}
+      user: root
+      passwd: huacloud

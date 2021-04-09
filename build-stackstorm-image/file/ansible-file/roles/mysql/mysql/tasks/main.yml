@@ -1,0 +1,46 @@
+---
+
+- name: Install mariadb
+  yum: name=mariadb update_cache=yes state=installed use_backend=yum
+
+- name: create /fast mysql directory
+  file: path=/opt/chinacloud/mysql state=directory mode=0755
+
+- name:  stop mysql
+  shell: cd /opt/chinacloud/mysql && docker-compose -f ./docker-compose.yml down
+  ignore_errors: yes
+
+- name: backup old mysql version
+  shell: tar -cf /opt/chinacloud/mysql-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/mysql && rm -rf  /opt/chinacloud/mysql/*
+
+- name: copy fast mysql file to /opt
+  copy: src=mysql/ dest=/opt/chinacloud/mysql/  mode=0755
+
+- name: create mysql_mgr db directory
+  file: path=/opt/chinacloud/mysql/mysql state=directory mode=0755 group=root owner=1001
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh   mode=0755
+
+- name: add docker-compose.yml
+  template: src=docker-compose.yml.j2 dest=/opt/chinacloud/mysql/docker-compose.yml
+
+- name: set mysql root password
+  shell: /tmp/init-ip.sh  /opt/chinacloud/mysql/  {DB_ROOT_PASSWD}   {% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}
+
+- name: replace onex ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/mysql/  {ONEX_IP} {% if (ONEX_VIP is defined) and (ONEX_VIP != '') %} {{ ONEX_VIP }} {% else %} {{ hostvars[groups['onex_servers'][0]]['ansible_host'] }} {% endif %}
+  ignore_errors: yes
+
+- name:  pull mysql images
+  shell: cd /opt/chinacloud/mysql && docker-compose  -f ./docker-compose.yml pull
+
+- name:  start mysql
+  shell: cd /opt/chinacloud/mysql && docker-compose -f ./docker-compose.yml  up  -d
+
+- name: waiting for mysql come alive
+  action: shell docker-compose -f /opt/chinacloud/mysql/docker-compose.yml ps|grep mysql
+  register: result
+  until: result.stdout.find("(healthy)") != -1
+  retries: 20
+  delay: 20

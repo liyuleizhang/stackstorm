@@ -1,0 +1,54 @@
+version: "2.1"
+services:
+  tasktracker:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/tasktracker:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-tasktracker
+    restart: always
+    network_mode: "host"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./data/kettle:/opt/server/stargate/kettle
+      - ./data/kettlejobs:/tmp/kettlejobs
+      - ./data/20-nproc.conf:/etc/security/limits.d/20-nproc.conf
+      - ./data/java.security:/usr/java/jdk1.8.0_101/jre/lib/security/java.security
+      - ./data/tasktracker/config.properties:/opt/server/stargate/tasktracker/conf/config.properties
+      - ./data/tasktracker/repositories.xml:/home/stargate/.kettle/repositories.xml
+    env_file:
+      -  global.env
+    environment:
+      - db_name=orchestra
+      - kettle_repname=orchestra
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - logstash_port=4563
+      - node_group=stg_kettle_tasktracker
+      - hubble_lineage_port=16009
+      - work_threads=5
+      - clusterName=hubble_orchestra
+
+  data-exchange:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/data-exchange-api:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: data-exchange
+    restart: always
+    volumes:
+      - ./fast.config:/apps/data-exchange-api.conf:z
+      - /etc/localtime:/etc/localtime
+      - /opt/chinacloud/hubble-kettle/data/kettle:/apps/kettle
+      - ./data/kettle-tmp:/tmp
+      - ./data/java.security:/opt/jdk/jre/lib/security/java.security
+      - ./data/20-nproc.conf:/etc/security/limits.d/20-nproc.conf
+      - ./data/data_exchange/repositories.xml:/root/.kettle/repositories.xml
+    env_file:
+      - global.env
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:8721/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    environment:
+      - repName=data_exchange
+      - kettleLogPath=/apps/kettle-job-run-log
+      - kettlePath=/apps/kettle
+      - port=8721
+      - db_name=data_exchange
+

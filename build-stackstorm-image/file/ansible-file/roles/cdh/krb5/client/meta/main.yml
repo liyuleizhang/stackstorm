@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: cdh/krb5/common }

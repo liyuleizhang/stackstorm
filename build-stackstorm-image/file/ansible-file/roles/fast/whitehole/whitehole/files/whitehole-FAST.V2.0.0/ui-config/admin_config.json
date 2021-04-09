@@ -1,0 +1,11 @@
+{
+  "header":[{
+    "name":"平台管理",
+    "href":"fast.admin.home.loginLog",
+    "url":"/fast-admin/default"
+  }],
+  "systemId": "2",
+  "defaultUrl":"/fast-admin/admin/home/login-log",
+  "isOnlinePermission":"true",
+  "isHeaderDownMenu": "true"
+}

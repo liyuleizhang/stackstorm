@@ -1,0 +1,4 @@
+---
+- hosts: zookeeper_ha
+  roles:
+    - zookeeper/zookeeper_ha

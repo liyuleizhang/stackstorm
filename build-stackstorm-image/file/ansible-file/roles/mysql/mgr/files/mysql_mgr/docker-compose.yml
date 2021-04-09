@@ -1,0 +1,18 @@
+version: '2.1'
+services:
+  mysql:
+    env_file:
+      - ./conf/mysql.env
+    image: hub.chinacloud.com/library/percona-server:5.7.22
+    restart: always
+    container_name: mysql
+    volumes:
+      - "./db:/var/lib/mysql"
+      - "./conf/my.cnf:/etc/mysql/my.cnf"
+      - "./log:/var/log/mysql"
+    healthcheck:
+      test: mysqladmin -uroot -pchinacloudroot ping
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    network_mode: "host"

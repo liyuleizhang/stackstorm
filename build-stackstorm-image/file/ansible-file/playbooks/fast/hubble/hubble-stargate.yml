@@ -1,0 +1,5 @@
+---
+
+- hosts: hb_stargate
+  roles:
+    - fast/hubble/hubble-stargate

@@ -1,0 +1,46 @@
+# 卸载命令：
+# ansible monitoring-master -i inventory -a "docker-compose -f /opt/chinacloud/monitoring/docker-compose.yml down -v"
+# ansible monitoring-minion -i inventory -a "docker-compose -f /opt/chinacloud/monitoring-minion/docker-compose.yml down -v"
+# ansible monitoring-master -i inventory -a "rm -rf /opt/chinacloud/monitoring"
+# ansible monitoring-minion -i inventory -a "rm -rf /opt/chinacloud/monitoring-minion"
+---
+
+# - name: gather facts from monitoring-minion servers
+#   setup:
+#   delegate_to: "{{item}}"
+#   delegate_facts: True
+#   loop: "{{groups['monitoring-minion']}}"
+
+- name: create monitoring directory
+  file: path=/opt/chinacloud/monitoring state=directory mode=0755
+
+- name:  stop monitoring
+  shell: cd /opt/chinacloud/monitoring && docker-compose -f ./docker-compose.yml down
+  ignore_errors: yes
+
+- name: backup old monitoring version
+  shell: tar -cf /opt/chinacloud/monitoring-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/monitoring && rm -rf  /opt/chinacloud/monitoring/*
+
+- name: copy docker-compose.yml to /opt/chinacloud/monitoring
+  template: src=docker-compose.yml.j2 dest=/opt/chinacloud/monitoring/docker-compose.yml mode=0644
+
+- name: copy prometheus.yml to /opt/chinacloud/monitoring
+  template: src=prometheus.yml.j2 dest=/opt/chinacloud/monitoring/prometheus.yml mode=0644
+
+- name: copy recording.rules to /opt/chinacloud/monitoring
+  template: src=recording.rules.j2 dest=/opt/chinacloud/monitoring/recording.rules mode=0644
+
+- name: copy altermanager.yml to /opt/chinacloud/monitoring
+  template: src=altermanager.yml.j2 dest=/opt/chinacloud/monitoring/altermanager.yml mode=0644
+
+- name: copy grafana-dashboards.yml to /opt/chinacloud/monitoring
+  template: src=grafana-dashboards.yml.j2 dest=/opt/chinacloud/monitoring/grafana-dashboards.yml mode=0644
+
+- name: copy grafana-datasources.yml to /opt/chinacloud/monitoring
+  template: src=grafana-datasources.yml.j2 dest=/opt/chinacloud/monitoring/grafana-datasources.yml mode=0644
+
+- name: copy nodes-overview.json to /opt/chinacloud/monitoring
+  copy: src=nodes-overview.json dest=/opt/chinacloud/monitoring/ mode=0644
+
+- name:  start monitoring master
+  shell: cd /opt/chinacloud/monitoring && docker-compose -f ./docker-compose.yml  up -d

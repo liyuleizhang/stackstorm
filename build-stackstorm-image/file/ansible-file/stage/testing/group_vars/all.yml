@@ -1,0 +1,176 @@
+---
+
+## ------------------------------------------------------------------------------------------------------------
+## Ansible配置
+## ------------------------------------------------------------------------------------------------------------
+
+ansible_become: false
+tmp_dir: /tmp
+
+## ------------------------------------------------------------------------------------------------------------
+## Nexus配置
+## ------------------------------------------------------------------------------------------------------------
+
+# nexus服务器地址，配置inventory中registry server的地址
+nexus_addr: "172.16.1.145"
+
+# nexus服务器端口
+nexus_port: 8081
+docker_registry_port: 8082
+
+# rpm包仓库
+nexus_yum_repository: "chinacloud-proxy"
+yum_repo: "http://{{ nexus_addr }}:8002"
+
+# cdh parcels包仓库
+nexus_cdh_parcels_repository: "cdh-parcels"
+
+# Docker images registry
+nexus_docker_repository: "docker"
+
+# 其他杂项文件的HTTP仓库
+nexus_miscs_repository: "miscs"
+
+## ------------------------------------------------------------------------------------------------------------
+## Docker options
+## ------------------------------------------------------------------------------------------------------------
+
+# Docker镜像仓库地址
+# 无需修改，代表使用产品中集成的nexus作为Docker镜像仓库。如特殊情况，可指定为其他可用docker镜像仓库
+docker_registry: "{{ nexus_addr }}:{{ docker_registry_port }}"
+
+## ------------------------------------------------------------------------------------------------------------
+## NTP配置
+## ------------------------------------------------------------------------------------------------------------
+
+# ntp根服务器地址
+# 产品独立部署，不需要配置此项。默认使用inventory文件中的registry server作为本地ntp根服务器。
+# 特殊情况，产品与其他系统集成时，如需要与其他系统进行时间同步，配置此项为其他ntp根服务器地址。
+# ntp_idc_server: 58.220.207.226
+
+## ------------------------------------------------------------------------------------------------------------
+## CDH - 安全配置，未启用，勿修改
+## ------------------------------------------------------------------------------------------------------------
+
+krb5_realm: MIT.EXAMPLE.COM
+# 'Active Directory', 'MIT KDC', or 'none' to disable security
+# krb5_kdc_type: MIT KDC
+krb5_kdc_type: none
+krb5_kdc_admin_user: "cloudera-scm/admin@{{ krb5_realm }}"
+krb5_kdc_admin_passwd: changeme
+krb5_kdc_master_passwd: changeme
+
+# krb5_realm: AD.EXAMPLE.COM
+# krb5_kdc_type: Active Directory
+# krb5_kdc_host: my.ad.example.com
+# krb5_kdc_admin_user: "admin@{{ krb5_realm }}"
+# krb5_kdc_admin_passwd: changeme
+# krb5_ad_suffix: "OU=Clusters,DC=ad,DC=example,DC=com"
+# krb5_ad_delete_on_regenerate: true
+
+# krb5_cm_managed_krb5_conf: false
+# krb5_enc_types: "aes256-cts aes128-cts rc4-hmac"
+
+ad_domain: "{{ krb5_realm.lower() }}"
+kdc: w2k8-1.ad.sec.example.com
+computer_ou: OU=computer_hosts,OU=hadoop_prd,DC=ad,DC=sec,DC=example,DC=com
+ldap_group_search_base: OU=groups,OU=hadoop_prd,DC=ad,DC=sec,DC=example,DC=com
+ldap_user_search_base: DC=ad,DC=sec,DC=example,DC=com?subtree?(memberOf=CN=hadoop_users,OU=groups,OU=hadoop_prd,DC=ad,DC=sec,DC=example,DC=com)
+override_gid: 999999
+ad_site: Default-First-Site-Name
+
+## ------------------------------------------------------------------------------------------------------------
+## CDH - Cloudera Manager配置
+## ------------------------------------------------------------------------------------------------------------
+
+# CDH安装版本
+# cluster_version_cdh: 6.3.0
+cluster_version_cdh: 5.12.2
+
+# Cloudera Manager安装版本
+# 勿改动，同CDH版本
+cluster_version_cm:  "{{ cluster_version_cdh }}"
+
+# Version of CDS Powered by Apache Spark (note: not installed if CDH6/7 is also selected)
+cluster_version_cds: 2.4.0.cloudera2
+
+# Helper variables for major and minor versions
+cluster_version_cdh_major: "{{ cluster_version_cdh.split('.')[0] }}"
+cluster_version_cdh_minor: "{{ cluster_version_cdh.split('.')[1] }}"
+cluster_version_cm_major: "{{ cluster_version_cm.split('.')[0] }}"
+cluster_version_cm_minor: "{{ cluster_version_cm.split('.')[1] }}"
+
+# Cloudera Manager版本相关配置
+configs_by_version:
+  "5":
+    # scm_repo_url:    "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm5/redhat/{{ ansible_distribution_major_version }}/x86_64/cm/{{ cluster_version_cm }}/"
+    # scm_repo_gpgkey: "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm5/redhat/{{ ansible_distribution_major_version }}/x86_64/cm/RPM-GPG-KEY-cloudera"
+    scm_parcel_repositories:
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/cdh5/parcels/{{ cluster_version_cdh }}/"
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/spark2/parcels/{{ cluster_version_cds }}/"
+    scm_csds:
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/spark2/csd/SPARK2_ON_YARN-{{cluster_version_cds}}.jar"
+    scm_prepare_database_script_path: "/usr/share/cmf/schema/scm_prepare_database.sh"
+  "6":
+    # scm_repo_url:    "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm6/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum"
+    # scm_repo_gpgkey: "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm6/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum/RPM-GPG-KEY-cloudera"
+    scm_parcel_repositories:
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/cdh6/{{ cluster_version_cdh }}/parcels"
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/cdh-parcels/{{ cluster_version_cdh }}"
+    scm_prepare_database_script_path: "/opt/cloudera/cm/schema/scm_prepare_database.sh"
+
+scm_parcel_repositories:            "{{ configs_by_version[cluster_version_cdh_major].scm_parcel_repositories }}"
+scm_prepare_database_script_path:   "{{ configs_by_version[cluster_version_cm_major].scm_prepare_database_script_path }}"
+# scm_repo_url:                       "{{ configs_by_version[cluster_version_cm_major].scm_repo_url }}"
+# scm_repo_gpgkey:                    "{{ configs_by_version[cluster_version_cm_major].scm_repo_gpgkey }}"
+scm_csds:                           "{{ configs_by_version[cluster_version_cm_major].scm_csds | default([]) }}"
+
+# Cloudera Manager用户名
+scm_default_user: admin
+# Cloudera Manager密码
+scm_default_pass: admin
+# Cloudera Manager端口
+scm_port: 7180
+# Cloudera Manager License，未启用此选型
+scm_license_file: /path/to/cloudera_license.txt
+
+## ------------------------------------------------------------------------------------------------------------
+## CDH - Java安装配置，勿改动
+## ------------------------------------------------------------------------------------------------------------
+
+java_installation_strategy: package       # can be set to 'none', 'package' or 'rpm'
+java_package: java-1.8.0-openjdk-devel
+java_rpm_location: /tmp/jdk-8u181-linux-x64.rpm
+java_rpm_remote_src: no
+java_jce_location: /tmp/jce_policy-8.zip
+java_jce_remote_src: no
+java_mysql_connector_download_url: http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_miscs_repository }}/cdh/mysql-connector-java-5.1.48.zip
+
+## ------------------------------------------------------------------------------------------------------------
+## Greenplum安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# Greenplum版本
+version: "6.2.1"
+# greenplum admin用户名
+greenplum_admin_user: "gpadmin"
+# greenplum admin密码
+greenplum_admin_password: "changeme"
+
+## ------------------------------------------------------------------------------------------------------------
+## Mysql MGR安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# MGR Keeplived VRRP网卡
+vrrp_interface_name: ens192
+# MGR Keeplived VIP广播地址
+vrrp_brd: 172.16.1.255
+# MGR Keeplived VIP地址
+vrrp_vip: 172.16.1.199/23
+
+## ------------------------------------------------------------------------------------------------------------
+## 机器学习 - Python配置（Beta）
+## ------------------------------------------------------------------------------------------------------------
+
+# TODO: 替换成nexus pypi repository
+pypi_index: https://pypi.douban.com/simple

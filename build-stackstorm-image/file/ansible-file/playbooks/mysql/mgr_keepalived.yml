@@ -1,0 +1,7 @@
+---
+
+- name: Deploy Mgr Keepalived
+  hosts: mgr_servers
+  roles:
+    - mysql/keepalived
+  tags: keepalived

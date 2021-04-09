@@ -1,0 +1,286 @@
+---
+
+## ------------------------------------------------------------------------------------------------------------
+## Ansible配置
+## ------------------------------------------------------------------------------------------------------------
+
+ansible_become: false
+tmp_dir: /tmp
+
+## ------------------------------------------------------------------------------------------------------------
+## Nexus配置
+## ------------------------------------------------------------------------------------------------------------
+
+# nexus服务器地址，配置inventory中registry server的地址
+nexus_addr: "172.16.1.33"
+
+# nexus服务器端口
+nexus_port: 8081
+docker_registry_port: 80
+
+# rpm包仓库
+nexus_yum_repository: "chinacloud-proxy"
+yum_repo: "http://{{ nexus_addr }}:8002"
+
+# cdh parcels包仓库
+nexus_cdh_parcels_repository: "cdh-parcels"
+
+# Docker images registry
+nexus_docker_repository: "docker"
+
+# 其他杂项文件的HTTP仓库
+nexus_miscs_repository: "miscs"
+
+## ------------------------------------------------------------------------------------------------------------
+## Docker options
+## ------------------------------------------------------------------------------------------------------------
+
+# Docker镜像仓库地址
+# 无需修改，代表使用产品中集成的nexus作为Docker镜像仓库。如特殊情况，可指定为其他可用docker镜像仓库
+docker_registry: "{{ nexus_addr }}"
+
+## ------------------------------------------------------------------------------------------------------------
+## NTP配置
+## ------------------------------------------------------------------------------------------------------------
+
+# ntp根服务器地址
+# 产品独立部署，不需要配置此项。默认使用inventory文件中的registry server作为本地ntp根服务器。
+# 特殊情况，产品与其他系统集成时，如需要与其他系统进行时间同步，配置此项为其他ntp根服务器地址。
+# ntp_idc_server: 58.220.207.226
+
+## ------------------------------------------------------------------------------------------------------------
+## CDH - 安全配置，未启用，勿修改
+## ------------------------------------------------------------------------------------------------------------
+
+krb5_realm: MIT.EXAMPLE.COM
+# 'Active Directory', 'MIT KDC', or 'none' to disable security
+# krb5_kdc_type: MIT KDC
+krb5_kdc_type: none
+krb5_kdc_admin_user: "cloudera-scm/admin@{{ krb5_realm }}"
+krb5_kdc_admin_passwd: changeme
+krb5_kdc_master_passwd: changeme
+
+# krb5_realm: AD.EXAMPLE.COM
+# krb5_kdc_type: Active Directory
+# krb5_kdc_host: my.ad.example.com
+# krb5_kdc_admin_user: "admin@{{ krb5_realm }}"
+# krb5_kdc_admin_passwd: changeme
+# krb5_ad_suffix: "OU=Clusters,DC=ad,DC=example,DC=com"
+# krb5_ad_delete_on_regenerate: true
+
+# krb5_cm_managed_krb5_conf: false
+# krb5_enc_types: "aes256-cts aes128-cts rc4-hmac"
+
+ad_domain: "{{ krb5_realm.lower() }}"
+kdc: w2k8-1.ad.sec.example.com
+computer_ou: OU=computer_hosts,OU=hadoop_prd,DC=ad,DC=sec,DC=example,DC=com
+ldap_group_search_base: OU=groups,OU=hadoop_prd,DC=ad,DC=sec,DC=example,DC=com
+ldap_user_search_base: DC=ad,DC=sec,DC=example,DC=com?subtree?(memberOf=CN=hadoop_users,OU=groups,OU=hadoop_prd,DC=ad,DC=sec,DC=example,DC=com)
+override_gid: 999999
+ad_site: Default-First-Site-Name
+
+## ------------------------------------------------------------------------------------------------------------
+## CDH - Cloudera Manager配置
+## ------------------------------------------------------------------------------------------------------------
+
+# CDH安装版本
+# cluster_version_cdh: 6.3.0
+cluster_version_cdh: 5.12.2
+
+# Cloudera Manager安装版本
+# 勿改动，同CDH版本
+cluster_version_cm:  "{{ cluster_version_cdh }}"
+
+# Version of CDS Powered by Apache Spark (note: not installed if CDH6/7 is also selected)
+cluster_version_cds: 2.4.0.cloudera2
+
+# Helper variables for major and minor versions
+cluster_version_cdh_major: "{{ cluster_version_cdh.split('.')[0] }}"
+cluster_version_cdh_minor: "{{ cluster_version_cdh.split('.')[1] }}"
+cluster_version_cm_major: "{{ cluster_version_cm.split('.')[0] }}"
+cluster_version_cm_minor: "{{ cluster_version_cm.split('.')[1] }}"
+
+# Cloudera Manager版本相关配置
+configs_by_version:
+  "5":
+    # scm_repo_url:    "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm5/redhat/{{ ansible_distribution_major_version }}/x86_64/cm/{{ cluster_version_cm }}/"
+    # scm_repo_gpgkey: "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm5/redhat/{{ ansible_distribution_major_version }}/x86_64/cm/RPM-GPG-KEY-cloudera"
+    scm_parcel_repositories:
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/cdh5/parcels/{{ cluster_version_cdh }}/"
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/spark2/parcels/{{ cluster_version_cds }}/"
+    scm_csds:
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/spark2/csd/SPARK2_ON_YARN-{{cluster_version_cds}}.jar"
+    scm_prepare_database_script_path: "/usr/share/cmf/schema/scm_prepare_database.sh"
+  "6":
+    # scm_repo_url:    "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm6/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum"
+    # scm_repo_gpgkey: "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_yum_repository }}/cm6/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum/RPM-GPG-KEY-cloudera"
+    scm_parcel_repositories:
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/cdh6/{{ cluster_version_cdh }}/parcels"
+      - "http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_cdh_parcels_repository }}/cdh-parcels/{{ cluster_version_cdh }}"
+    scm_prepare_database_script_path: "/opt/cloudera/cm/schema/scm_prepare_database.sh"
+
+scm_parcel_repositories:            "{{ configs_by_version[cluster_version_cdh_major].scm_parcel_repositories }}"
+scm_prepare_database_script_path:   "{{ configs_by_version[cluster_version_cm_major].scm_prepare_database_script_path }}"
+# scm_repo_url:                       "{{ configs_by_version[cluster_version_cm_major].scm_repo_url }}"
+# scm_repo_gpgkey:                    "{{ configs_by_version[cluster_version_cm_major].scm_repo_gpgkey }}"
+scm_csds:                           "{{ configs_by_version[cluster_version_cm_major].scm_csds | default([]) }}"
+
+# Cloudera Manager用户名
+scm_default_user: admin
+# Cloudera Manager密码
+scm_default_pass: admin
+# Cloudera Manager端口
+scm_port: 7180
+# Cloudera Manager License，未启用此选型
+scm_license_file: /path/to/cloudera_license.txt
+
+## ------------------------------------------------------------------------------------------------------------
+## CDH - Java安装配置，勿改动
+## ------------------------------------------------------------------------------------------------------------
+
+java_installation_strategy: package       # can be set to 'none', 'package' or 'rpm'
+java_package: java-1.8.0-openjdk-devel
+java_rpm_location: /tmp/jdk-8u181-linux-x64.rpm
+java_rpm_remote_src: no
+java_jce_location: /tmp/jce_policy-8.zip
+java_jce_remote_src: no
+java_mysql_connector_download_url: http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_miscs_repository }}/cdh/mysql-connector-java-5.1.48.zip
+
+## ------------------------------------------------------------------------------------------------------------
+## Greenplum安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# Greenplum版本
+version: "6.2.1"
+# greenplum admin用户名
+greenplum_admin_user: "gpadmin"
+# greenplum admin密码
+greenplum_admin_password: "changeme"
+
+## ------------------------------------------------------------------------------------------------------------
+## Mysql MGR安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# Mysql镜像tag
+mysql_tag: 5.7.23
+
+# Mysql数据库端口，用户名和密码
+db_port:
+db_user:
+db_passwd:
+
+# Mysql数据存储目录
+# 当Mysql数据量较大时，建议单独划分存储空间分配给Mysql。目录名建议为 /data
+# 如此项配置为空，则默认使用/opt/chinacloud/mysql/db或/opt/chinacloud/mysql_mgr/db目录作为mysql数据存储目录。
+db_datapath:
+
+## ------------------------------------------------------------------------------------------------------------
+## Rabbitmq安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# rabbitmq镜像tag
+rabbitmq_tag: 3.6-management
+
+# rabbitmq端口。一般需要改动此配置，除非你知道你在做什么
+rabbitmq_port:
+
+## ------------------------------------------------------------------------------------------------------------
+## Zookeeper安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# zookeeper镜像tag
+zookeeper_tag: 3.4.13
+
+# zookeeper端口。一般不需要改动此配置，除非你知道你在做什么
+zookeeper_port:
+
+## ------------------------------------------------------------------------------------------------------------
+## Kafka安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# kafka镜像tag
+kafka_tag: 2.12-0.11.0.0
+
+# kafka端口。一般不需要改动此配置，除非你知道你在做什么
+kafka_port:
+
+## ------------------------------------------------------------------------------------------------------------
+## 机器学习 - Python配置（Beta）
+## ------------------------------------------------------------------------------------------------------------
+
+# TODO: 替换成nexus pypi repository
+pypi_index: https://pypi.douban.com/simple
+
+## ------------------------------------------------------------------------------------------------------------
+## FAST安装配置
+## ------------------------------------------------------------------------------------------------------------
+
+# Whitehole版本
+WH_VERSION: FAST.V2.0.0
+WH_FLOW_VERSION: FAST.V2.0.0.RELEASE
+WH_BUSINESS_VERSION: FAST.V2.0.0.RELEASE
+WH_EVENT_VERSION: FAST.V2.0.0.RELEASE
+WH_STATISTICS_VERSION: FAST.V2.0.0.RELEASE
+WSO2_SERVICE_BK_VERSION: FAST.V2.0.0.RELEASE
+WHUI_ALLINONE_VERSION: FAST.V2.0.0.RELEASE
+STATISTICS_UI_VERSION: FAST.V2.0.0.RELEASE
+STATISTICS_API_VERSION: FAST.V2.0.0.RELEASE
+
+# OneX版本
+ONEX_VERSION: FAST.V2.0.0
+ONEX_IMAGE_VERSION: FAST.V2.0.0.RELEASE
+# one-config image tag, default same as onex_image_version
+ONEX_CONFIG_IMAGE_VERSION: FAST.V2.0.0.RELEASE
+ONEX_IMAGE_GROUP: onex.rel
+
+# Hubble版本
+HUBBLE_VERSION: FAST.V2.0.0
+HUBBLE_IMAGE_VERSION: FAST.V2.0.0.RELEASE
+HUBBLE_IMAGE_GROUP: hubble
+
+# Wso2配置 因为没在fast的自动化部署中， 而且生成的key值需要前期先生成， 所以需要在这里配置，以下值为测试值，请按实际现场修改
+# wso2_ip: 网关ip:port
+wso2_am_url: 172.16.71.156:9443
+wso2_am_publisher_url: 172.16.71.156:9443
+wos2_am_store_url: 172.16.71.156:9443
+wso2_gateway_url: 172.16.71.156:8280
+wso2_service_broker_url: 172.16.71.156:15678
+wso2_query_key: Bearer daa4b16d-dee7-3195-b45b-bfcd64ae89ee
+wso2_operate_key: Bearer 8c78fc17-57e5-3cb2-bcc4-6535c55f97dc
+wso2_publisher_key: Bearer 079ffb92-38ce-3222-abad-573e8c43c7fc
+wso2_subscribtion_key:  Bearer 45b6ccca-7759-34d2-9d22-8fb65043f794
+wso2_tirequery_key: Bearer e54956d7-af4f-33c8-a4ef-d5c1e9b53706
+wso2_subscription_block_key: Bearer 2cf52325-d6ce-3482-b0d0-1f5fd51a048
+
+# 产品部署自带默认数据库，产品使用默认数据库时 “db_ip” 默认不需要任何设置；
+# 如果客户现场已经有数据库且客户要求部署的产品使用这个数据库；那么需要填写 “db_ip” 的值为客户现场数据库 IP。
+# 使用mysql-router后，系统数据库全部连接本机的mysql-router
+db_ip:
+
+# 产品部署自带默认rabbitmq，产品使用默认rabbitmq时 “rabbitmq_ip” 默认不需要任何设置；
+# 如果客户现场已经有rabbitmq且客户要求部署的产品使用这个rabbitmq；那么需要填写 “rabbitmq_ip” 的值为客户现场数据库 IP。
+rabbitmq_ip:
+
+# 产品部署自带默认zookeeper，产品使用默认zookeeper时 “zookeeper_ip” 默认不需要任何设置；
+# 如果客户现场已经有zookeeper且客户要求部署的产品使用这个zookeeper；那么需要填写 “zookeeper_ip” 的值为客户现场数据库 IP。
+zookeeper_ip:
+
+# hadoop配置方式分为两种情况
+# 1. 使用星盘部署的CDH集群，需按照环境部署规划文档中hadoop角色分配列表填写如下配置
+# 2. 使用第三方厂商提供的CDH集群，需按照实际环境填写如下配置
+# hadoop集群master节点hostanme，如使用非星盘部署的Hadoop集群，需配置hb_standalone,hb_nifi,hb_metagrid角色下节点与hadoop master节点ssh免密登录
+hadoop_master_hostname: cdh01
+# hdfs的namenode列表，如果是高可用的hdfs，则都填写
+hdfs_namenode_list: 172.16.1.30:8020
+# hdfs当前active状态的namenode ip
+hdfs_namenode_ip: 172.16.1.30
+# hdfs当前active状态的namenode port
+hdfs_namenode_port: 8020
+# hive的server2服务列表
+hive_server2_list: 172.16.1.31:10000,172.16.1.32:10000
+# zookeeper的列表
+hbase_zookeeper_list: 172.16.1.30:2181,172.16.1.31:2181,172.16.1.32:2181
+# yanr服务的resourceManger的IP
+yarn_rm_ip: 172.16.1.30
+# yanr服务的resourceManger的PORT
+yarm_rm_port: 8088

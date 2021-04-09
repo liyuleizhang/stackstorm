@@ -1,0 +1,22 @@
+version: '2.1'
+services:
+  rabbitmq:
+    image: {{ docker_registry }}/library/rabbitmq:{{ rabbitmq_tag }}
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_NODENAME: rabbitmq{{node_id}}
+      RABBITMQ_ERLANG_COOKIE: CURIOAPPLICATION
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+      - /etc/localtime:/etc/localtime
+      - ./rabbitmq-join-cluster.sh:/rabbitmq-join-cluster.sh
+    network_mode: "host"
+    healthcheck:
+      timeout: 5s
+      interval: 5s
+      retries: 5
+      test:
+        - "CMD"
+        - "rabbitmqctl"
+        - "status"

@@ -1,0 +1,26 @@
+---
+
+- name: Create /etc/systemd/system/docker.service.d if it does not exist
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    mode: '0755'
+
+- name: Template a file to /etc/systemd/system/docker.service.d/override.conf
+  template:
+    src: override.conf.j2
+    dest: /etc/systemd/system/docker.service.d/override.conf
+
+- name: install docker-ce
+  yum:
+    name: ['container-selinux', 'containerd.io', 'docker-ce']
+    state: present
+    update_cache: yes
+    use_backend: yum
+
+- name: start docker
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

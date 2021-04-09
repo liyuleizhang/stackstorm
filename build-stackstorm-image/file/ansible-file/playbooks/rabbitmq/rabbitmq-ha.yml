@@ -1,0 +1,11 @@
+- hosts: rabbitmq_first
+  roles:
+     - rabbitmq/rabbitmq_ha
+
+- hosts: rabbitmq_node
+  roles:
+    - rabbitmq/rabbitmq_ha
+
+- hosts: rabbitmq_first
+  roles:
+    - rabbitmq/rabbitmq_init

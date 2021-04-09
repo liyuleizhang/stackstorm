@@ -1,0 +1,12 @@
+ARRAY_NAME="Greenplum Data Platform"
+SEG_PREFIX=gpseg
+PORT_BASE=6000
+# 数据目录的数量需要和segment节点数量相同！
+# TODO: 根据segment数量自动生成数据目录
+declare -a DATA_DIRECTORY=({% for server in groups['gpsegment_servers'] %}  /data/gpdatap{{loop.index}} {% endfor %})
+MASTER_HOSTNAME=mdw
+MASTER_DIRECTORY={{ master_data_directory }}
+MASTER_PORT=5432
+TRUSTED_SHELL=ssh
+CHECK_POINT_SEGMENTS=8
+ENCODING=UNICODE

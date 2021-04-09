@@ -1,0 +1,31 @@
+---
+
+- set_fact:
+    home: "{{ '/root' if user == 'root' else '/home/' + user }}"
+
+- name: create .ssh directory
+  file:
+    path: "{{ home }}/.ssh"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0700
+
+- name: copy id_rsa to .ssh/id_rsa
+  copy:
+    src: id_rsa.autodeploy
+    dest: "{{ home }}/.ssh/id_rsa"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0400
+
+- name: clean the pub-key .ssh/id_rsa.pub
+  file:
+    path: "{{ home }}/.ssh/id_rsa.pub"
+    state: absent
+
+- name: Set authorized key took from file
+  authorized_key:
+    user: "{{ user }}"
+    state: present
+    key: "{{ lookup('file', 'id_rsa.autodeploy.pub') }}"

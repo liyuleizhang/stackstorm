@@ -1,0 +1,369 @@
+#jinja2: lstrip_blocks: False, trim_blocks: False
+upstream onex-server {
+    # server {ONEX_IP}:82;
+    {% for host in groups['onex_servers'] %}
+    server {{hostvars[host]['ansible_host']}}:82 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream whitehole-server {
+    # server {WHITEHOLE_IP}:86;
+    {% for host in groups['wh_servers'] %}
+    server {{hostvars[host]['ansible_host']}}:86 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream statistics-server {
+    # server {WHITEHOLE_IP}:81;
+    {% for host in groups['wh_servers'] %}
+    server {{hostvars[host]['ansible_host']}}:81 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-de {
+    # server {HUBBLE_IP}:80;
+    {% for host in groups['hubble_servers'] %}
+    server {{hostvars[host]['ansible_host']}}:80 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-ureport {
+    # server {HUBBLE_IP}:16667;
+    {% for host in groups['hubble_servers'] %}
+    server {{hostvars[host]['ansible_host']}}:16667 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-token-server {
+    {% for host in groups['hb_broker'] %}
+    server {{hostvars[host]['ansible_host']}}:16112 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-broker-api-server {
+    {% for host in groups['hb_broker'] %}
+    server {{hostvars[host]['ansible_host']}}:16211 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-broker-parents-server {
+    {% for host in groups['hb_broker'] %}
+    server {{hostvars[host]['ansible_host']}}:9996 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-broker-dataset-server {
+    {% for host in groups['hb_broker'] %}
+    server {{hostvars[host]['ansible_host']}}:9991 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-broker-file-server {
+    {% for host in groups['hb_broker'] %}
+    server {{hostvars[host]['ansible_host']}}:16213 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream hubble-metagrid-server {
+    {% for host in groups['hb_metagrid'] %}
+    server {{hostvars[host]['ansible_host']}}:16009 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream onex-route-server {
+    {% for host in groups['onex_servers'] %}
+    server {{hostvars[host]['ansible_host']}}:8084 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+upstream onex-infrastructure-server {
+    {% for host in groups['onex_servers'] %}
+    server {{hostvars[host]['ansible_host']}}:8081 weight=5 max_fails=5 fail_timeout=30s;
+    {% endfor %}
+    ip_hash;
+}
+
+
+server {
+    listen       80;
+    access_log   /var/log/nginx/portal.log;
+    index  index.html index.htm;
+    error_page   500 502 503 504  /50x.html;
+    proxy_redirect off;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    keepalive_timeout 600;
+    client_header_timeout 600;
+    client_body_timeout 600;
+    client_max_body_size 12000M;
+    proxy_connect_timeout 600s;
+    proxy_read_timeout    600s;
+    proxy_send_timeout    600s;
+    send_timeout 600;
+    proxy_buffer_size  128k;
+    proxy_buffers   32 32k;
+    proxy_busy_buffers_size 128k;
+
+    if ($http_user_agent ~* "qihoobot|Baiduspider|Googlebot|Googlebot-Mobile|Googlebot-Image|Mediapartners-Google|Adsbot-Google|Feedfetcher-Google|Yahoo! Slurp|Yahoo! Slurp China|YoudaoBot|Sosospider|Sogou spider|Sogou web spider|MSNBot|ia_archiver|Tomato Bot") {
+        return 403;
+    }
+
+    #onex
+    location /fast/ {
+        proxy_pass            http://onex-server/fast/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /fast-admin/ {
+        proxy_pass            http://onex-server/fast-admin/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /one {
+        proxy_pass            http://onex-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    #keycloak
+    location /auth {
+        proxy_pass            http://onex-server/auth;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host:$server_port;
+        #proxy_set_header X-Forwarded-Proto "https";
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    #whitehole
+    location /wh {
+        proxy_pass            http://whitehole-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /business {
+        proxy_pass            http://onex-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /statistics {
+        proxy_pass            http://whitehole-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /event {
+        proxy_pass            http://whitehole-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /file {
+        proxy_pass            http://whitehole-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /statistics-ui/ {
+        proxy_pass            http://statistics-server/statistics-ui/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    #hubble
+    location /hubble {
+        proxy_pass            http://hubble-de;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /hubble-mg-api {
+        proxy_pass            http://onex-route-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+
+    location /hdfsFile {
+        proxy_pass            http://hubble-de;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /ureport {
+        proxy_pass            http://hubble-ureport;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /one-route/ {
+        proxy_pass            http://onex-route-server/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+
+    location  /v1/tokenserver {
+        proxy_pass            http://hubble-token-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location  /*/dynamics/api {
+        proxy_pass            http://hubble-broker-api-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+
+    location  /hubble/metagrid {
+        proxy_pass            http://hubble-metagrid-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /dynamics-set {
+        proxy_pass            http://hubble-broker-dataset-server/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /dynamics-api {
+        proxy_pass            http://hubble-broker-api-server/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /file-service-broker {
+        proxy_pass            http://hubble-broker-file-server/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location ^~ /one-infrastructure-api/notify {
+        proxy_pass http://onex-infrastructure-server/notify/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        #rewrite ^/pulsar/(.+) /$1 break;
+    }
+
+    location ^~ /one-infrastructure-api/socketmsg {
+        proxy_pass http://onex-server/socketmsg;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        #rewrite ^/pulsar/(.+) /$1 break;
+    }
+
+    location ^~ /one-infrastructure-api/message/recieve {
+        proxy_pass http://onex-server/message/recieve;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        #rewrite ^/pulsar/(.+) /$1 break;
+    }
+
+    location /one-infrastructure-api {
+        proxy_pass   http://onex-server/one-infrastructure-api;
+        index  index.html index.htm;
+    }
+
+    location /one-logging-api {
+        proxy_pass   http://onex-server/one-logging-api;
+        index  index.html index.htm;
+    }
+
+    location /zuul {
+        proxy_pass http://onex-server/zuul;
+        proxy_http_version 1.1;
+        proxy_set_header    Host            $host;
+        proxy_set_header    Upgrade         $http_upgrade;
+        proxy_set_header    Connection      "Upgrade";
+        proxy_set_header    X-Real-IP       $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /wh-ui/ {
+        proxy_pass            http://whitehole-server/wh-ui/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /wh-admin-ui/ {
+        proxy_pass            http://whitehole-server/wh-admin-ui/;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /api/v1/users {
+        proxy_pass            http://onex-infrastructure-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location  /v1/broker/event{
+        proxy_pass            http://hubble-broker-parents-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location  /api/v1/file-service {
+        proxy_pass            http://hubble-broker-file-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    location  /v2/dynamics/api {
+        proxy_pass            http://hubble-broker-api-server;
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

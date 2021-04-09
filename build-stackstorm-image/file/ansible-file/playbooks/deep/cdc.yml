@@ -1,0 +1,7 @@
+---
+
+- name: Deploy Cloudwise CDC
+  hosts: deep_minion
+  roles:
+    - deep/cdc
+  tags: cdc

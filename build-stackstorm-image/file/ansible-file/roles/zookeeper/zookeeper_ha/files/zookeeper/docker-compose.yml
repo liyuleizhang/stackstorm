@@ -1,0 +1,11 @@
+version: '2'
+services:
+  rabbitmq:
+    network_mode: "host"
+    image: hub.chinacloud.com.cn/common.dev/zookeeper:3.4.13
+    container_name: zoo
+    volumes:
+      - ./data:/data
+      - ./datalog:/datalog
+      - ./conf:/conf
+      - /etc/localtime:/etc/localtime

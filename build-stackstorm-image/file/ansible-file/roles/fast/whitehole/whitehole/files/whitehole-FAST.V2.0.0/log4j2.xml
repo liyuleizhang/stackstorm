@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <appenders>
+        <!--这个输出控制台的配置-->
+        <console name="Console" target="SYSTEM_OUT">
+            <!--输出日志的格式-->
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} %L - %msg%n"/>
+        </console>
+    </appenders>
+
+    <loggers>
+        <logger name="org.hibernate"  level="ERROR" />
+        <logger name="springfox" level="ERROR" />
+        <logger name="org.apache" level="ERROR" />
+        <logger name="org.springframework" level="ERROR" />
+        <logger name="org.springframework.cloud" level="ERROR" />
+        <logger name="org.springframework.cloud.config" level="ERROR" />
+        <logger name="org.springframework.cloud.netflix.eureka.EurekaDiscoveryClientConfiguration" level="INFO" />
+        <logger name="com.netflix" level="ERROR" />
+        <logger name="com.netflix.config" level="ERROR" />
+        <logger name="com.netflix.discovery" level="ERROR" />
+        <logger name="org.activiti" level="ERROR" />
+        <logger name="org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer" level="INFO" />
+
+        <logger name="com.whitehole" level="INFO" />
+        <logger name="cetc.chinacloud.co" level="INFO" />
+        <root level="ERROR">
+            <appender-ref ref="Console"/>
+        </root>
+    </loggers>
+</configuration>

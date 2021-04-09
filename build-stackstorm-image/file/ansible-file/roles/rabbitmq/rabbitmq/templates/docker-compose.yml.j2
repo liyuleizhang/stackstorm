@@ -1,0 +1,18 @@
+version: '2.1'
+services:
+  rabbitmq:
+    image: {{ docker_registry }}/library/rabbitmq:{{ rabbitmq_tag}}
+    container_name: rabbitmq
+    restart: always
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - rabbitmq.env
+    healthcheck:
+      test: rabbitmqctl status
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    network_mode: "host"
+

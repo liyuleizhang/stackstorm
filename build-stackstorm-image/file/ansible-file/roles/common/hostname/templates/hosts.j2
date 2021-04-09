@@ -1,0 +1,8 @@
+127.0.0.1   localhost localhost.localdomain
+::1         localhost localhost.localdomain
+
+{% for k,v in hostvars.items() %}
+{% if k in groups['servers'] and "ansible_host" in hostvars[k].keys() %}
+{{ hostvars[k].ansible_default_ipv4.address }} {{ hostvars[k].inventory_hostname }}
+{% endif %}
+{% endfor %}

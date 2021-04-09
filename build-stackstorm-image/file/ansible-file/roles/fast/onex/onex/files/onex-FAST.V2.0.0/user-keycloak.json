@@ -1,0 +1,10 @@
+{
+  "realm":"fast",
+  "auth-server-url":"http://{ONEX_IP}/auth",
+  "ssl-required": "external",
+  "resource":"user-client",
+  "credentials": {
+    "secret":"b1f34b10-dea8-42f0-a5a0-b46a708f75d9"
+  },
+  "policy-enforcer": {}
+}

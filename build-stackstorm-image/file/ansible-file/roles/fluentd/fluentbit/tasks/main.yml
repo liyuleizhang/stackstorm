@@ -1,0 +1,42 @@
+---
+
+# - name: create fluentd directory
+#   file: path=/opt/chinacloud/fluentd state=directory mode=0755
+
+# - name: add fluent-bit.conf
+#   template: src=fluent-bit.conf.j2 dest=/opt/chinacloud/fluentd/fluent-bit.conf
+
+# 暂时屏蔽，使用容器方式安装无法获取内核等数据
+# - name: Re-create fluentbit container
+#   docker_container:
+#     name: fluentbit
+#     image: "{{ docker_registry }}/fluent/fluent-bit:1.4"
+#     command: /fluent-bit/bin/fluent-bit -c /fluent-bit/etc/conf/fluent-bit.conf
+#     state: started
+#     recreate: yes
+#     ports:
+#       - "24224:24224"
+#     volumes:
+#       - "/opt/chinacloud/fluentd/fluent-bit.conf:/fluent-bit/etc/conf/fluent-bit.conf"
+
+- name: yum-clean-metadata
+  command: yum clean metadata
+  args:
+    warn: no
+
+- name: ensure td-agent-bit is installed
+  yum:
+    name: td-agent-bit
+    state: installed
+    update_cache: yes
+    use_backend: yum
+
+- name: add fluent-bit.conf
+  template: src=fluent-bit.conf.j2 dest=/etc/td-agent-bit/td-agent-bit.conf
+
+- name: start td-agent-bit
+  systemd:
+    name: td-agent-bit
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

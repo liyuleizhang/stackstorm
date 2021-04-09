@@ -1,0 +1,13 @@
+---
+
+# - name: Install Docker
+#   hosts: registry_server
+#   roles:
+#     - common/docker
+#   tags: docker
+
+- name: Deplpy nexus registry
+  hosts: registry_server
+  roles:
+    - registry/nexus
+  tags: nexus

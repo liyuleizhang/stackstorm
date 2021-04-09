@@ -1,0 +1,83 @@
+{
+  "ft":{
+    "systemUrl":"fast.mir.dashboardOneUI",
+    "type1":[{
+      "title": "首页",
+      "href": "fast.home",
+      "url": "fast.home",
+      "id":""
+    }, {
+      "title": "服务目录",
+      "href": "fast.catalogue",
+      "url": "fast.catalogue",
+      "id":""
+    }, {
+      "title": "数据服务",
+      "href": "fast.dataService",
+      "url": "fast.dataService",
+      "id":""
+    }, {
+      "title": "个人中心",
+      "href": "fast.mir.orderManagement.cart",
+      "url": "fast.mir.orderManagement.cart",
+      "id":"myCenter"
+    }],
+    "type0":{
+      "pro":{
+        "msgUrl": "http://172.16.0.7:19021/fast/messageManagement/all",
+        "allWoUrl": "http://172.16.0.7:19021/fast/workOrderManagement/all",
+        "newWoUrl": "http://172.16.0.7:19021/fast/workOrderManagement/new",
+        "homeTenantUrl": "http://172.16.0.7:19021/fast//home/my-tenant",
+        "homeLogUrl": "http://172.16.0.7:19021/fast/home/login-log",
+        "platformManagementUrl": "http://172.16.0.7:19021/fast/home/login-log",
+        "dashboard": "http://172.16.0.7:19021/fast/dashboardOneUI"
+      },
+      "dev":{
+        "msgUrl": "fast.mir.messageManagement.all",
+        "allWoUrl": "fast.mir.workOrderManagement.all",
+        "newWoUrl": "fast.mir.workOrderManagement.create({new:'new'})",
+        "homeTenantUrl": "fast.mir.home.tenant",
+        "homeLogUrl": "fast.mir.home.loginLog",
+        "platformManagementUrl": "fast.mir.home.loginLog",
+        "dashboard": "fast.mir.dashboardOneUI"
+      }
+    },
+    "type2": [
+      {
+        "title": "首页",
+        "href": "",
+        "url": "fast.dashboard"
+      },{
+        "title": "服务目录",
+        "href": "",
+        "url": ""
+      },{
+        "title": "系统管理",
+        "href": "",
+        "url": ""
+      },{
+        "title": "帮助",
+        "href": "",
+        "url": ""
+      }
+    ]
+  },
+  "mir":{
+    "type0":[{
+      "title": "工单",
+      "href": "2",
+      "url": "1"
+    },{
+      "title": "工单",
+      "href": "2",
+      "url": "1"
+    }]
+  },
+  "systemId": "2",
+  "theme":"default",
+  "style":"default",
+  "hideNav":"false",
+  "isShowPermission":"false",
+  "isNavPermission":"true",
+  "defaultUrl":"http://www.chinacloud.de/fast/dashboardOneUI"
+}

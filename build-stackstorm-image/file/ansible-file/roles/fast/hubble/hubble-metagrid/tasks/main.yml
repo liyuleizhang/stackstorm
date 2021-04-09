@@ -1,0 +1,141 @@
+---
+
+- name: create hubble-metagrid directory
+  file: path=/opt/chinacloud/hubble-metagrid state=directory mode=0755
+
+- name:  stop hubble-metagrid
+  shell: cd /opt/chinacloud/hubble-metagrid && docker-compose -f ./docker-compose.yml down
+  ignore_errors: True
+
+- name: backup old hubble-metagrid version
+  shell: tar -cf /opt/chinacloud/hubble-metagrid-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/hubble-metagrid && rm -rf  /opt/chinacloud/hubble-metagrid/*
+
+- name: copy hubble-metagrid file to /opt/chinacloud
+  copy: src=./ dest=/opt/chinacloud/hubble-metagrid/  mode=0755
+
+# 生成global.env
+- name: generate global.env
+  template:
+    src: global.env.j2
+    dest: /opt/chinacloud/hubble-metagrid/global.env
+
+# 生成docker-compose.yml
+- name: generate docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/chinacloud/hubble-metagrid/docker-compose.yml
+  when: ONEX_VIP is not defined or ONEX_VIP == ''
+
+- name: generate docker-compose.yml
+  template:
+    src: docker-compose.yml.ha.j2
+    dest: /opt/chinacloud/hubble-metagrid/docker-compose.yml
+  when: ONEX_VIP is defined and ONEX_VIP != ''
+
+# 生成mysql-router.env
+- name: generate mysql-router.env
+  template:
+    src: mysql-router.env.j2
+    dest: /opt/chinacloud/hubble-metagrid/mysql-router.env
+  when: ONEX_VIP is defined and ONEX_VIP != ''
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh mode=0755
+
+- name: set variables
+  set_fact:
+    ONEX_IP: "{% if ONEX_VIP is defined and ONEX_VIP != '' %} {{ ONEX_VIP }} {% else %} {{ hostvars[groups['onex_servers'][0]]['ansible_host'] }} {% endif %}"
+    WHITEHOLE_IP: "{{ hostvars[groups['wh_servers'][0]]['ansible_host'] }}"
+    WHITEHOLE_BUSSINESS_PORT: "{% if ONEX_VIP is defined and ONEX_VIP != '' %}8087{% else %}86{% endif %}"
+    MYSQL_IP: "{% if db_ip %}{{ db_ip }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}{{ ansible_default_ipv4.address }}{% else %}{{ hostvars[groups['mysql'][0]]['ansible_host'] }}{% endif %}"
+    MYSQL_PASSWORD: "{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}"
+    MYSQL_PORT: "{% if db_port %}{{ db_port }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}6452{% else %}3306{% endif %}"
+    RABBITMQ_ADDRESS: "{% for host in groups['rabbitmq_servers'] -%} {{ hostvars[host]['ansible_host'] }}:{%- if rabbitmq_port -%}{{ rabbitmq_port }}{%- else -%}5672{%- endif -%}{%- if loop.nextitem is defined -%},{%- endif -%} {%- endfor %}"
+    ZOOKEEPER_ADDRESS: "{% for host in groups['zookeeper_servers'] -%} {{ hostvars[host]['ansible_host'] }}:{%- if zookeeper_port -%}{{ zookeeper_port }}{%- else -%}2181{%- endif -%}{%- if loop.nextitem is defined -%},{%- endif -%} {%- endfor %}"
+
+
+- name: replace db ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {MYSQL_DESTINATION_IP}  {{ MYSQL_IP }}
+
+# application.yml里用到了数据库端口
+- name: replace db port
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {MYSQL_DESTINATION_PORT}  {{ MYSQL_PORT }}
+
+- name: replace rabbitmq ip
+  loop: "{{groups['rabbitmq_servers']}}"
+  shell: /tmp/init-ip.sh /opt/chinacloud/hubble-metagrid/ {RABBITMQ_IP} {{ RABBITMQ_ADDRESS }}
+
+- name: replace hubble_standalone ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {HUBBLE_STANDALONE_IP}  {{ hostvars[groups['hb_standalone'][0]]['ansible_host'] }}
+
+- name: replace fast-onex ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {ONEX_IP}  {{ ONEX_IP }}
+
+- name: replace whitehole ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {WHITEHOLE_IP}  {{ WHITEHOLE_IP }}
+
+- name: replace whitehole bussiness port
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {WHITEHOLE_BUSSINESS_PORT}  {{ WHITEHOLE_BUSSINESS_PORT }}
+
+- name: replace yarn rm  ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {YARN_RM_IP}   {{ yarn_rm_ip }}
+  ignore_errors: yes
+
+- name: replace hdfs active namespaces ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {HDFS_NAMENODE_IP}   {{ hdfs_namenode_ip }}
+  ignore_errors: yes
+
+- name: replace hbase zookeeper ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {HBASE_ZOOKEEPER_LIST}   {{ hbase_zookeeper_list }}
+  ignore_errors: yes
+
+- name: create metagrid download dir
+  shell: mkdir -p /opt/chinacloud/hubble-metagrid/data/metagrid/download
+  ignore_errors: yes
+
+- name: create nfs folder /nfs/share
+  shell: mkdir -p -v /nfs/share
+  ignore_errors: yes
+
+- name: share nfs folder
+  shell: echo '/nfs/share *(rw,sync,no_root_squash)' >> /etc/exports
+  when: "'/nfs/share '  not in check_share_nfs_point.stdout"
+  ignore_errors: yes
+
+- name: start rpcbind service
+  shell: service rpcbind restart
+  ignore_errors: yes
+
+- name: start nfs service
+  shell: service nfs restart
+  ignore_errors: yes
+
+- name: set nfs service auto start
+  shell: chkconfig nfs on
+  ignore_errors: yes
+
+#- name: mount nfs folder
+#  shell: mount -t nfs {{ hostvars[groups['hb_standalone'][0]]['ansible_host'] }}:/nfs/share /opt/chinacloud/hubble-metagrid/data/metagrid/download && echo '{{ hostvars[groups['origin'][0]]['ansible_host'] }}:/nfs/share /opt/chinacloud/hubble-metagrid/data/metagrid/download/ nfs defaults 0 0'  >> /etc/fstab
+#  ignore_errors: yes
+
+- name: replace hive server list ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {HIVE_SERVER2_LIST}   {{ hive_server2_list }}
+
+- name: replace hdfs list ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {HDFS_NAMENODE_LIST}   {{ hdfs_namenode_list }}
+
+- name: replace hdfs list ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-metagrid/  {HDFS_NAMENODE_LIST}   {{ hdfs_namenode_list }}
+
+- name:  pull hubble-metagrid images
+  shell: cd /opt/chinacloud/hubble-metagrid && docker-compose  -f ./docker-compose.yml pull
+
+- name:  start hubble-metagrid
+  shell: cd /opt/chinacloud/hubble-metagrid  && docker-compose -f ./docker-compose.yml  up -d
+
+- name: Wait hubble-metagrid come alive
+  action: shell docker-compose -f /opt/chinacloud/hubble-metagrid/docker-compose.yml ps | grep "(healthy)" | wc -l
+  register: result
+  until: result.stdout.find( '5' if ONEX_VIP is defined and ONEX_VIP != '' else '4') != -1
+  retries: 20
+  delay: 10

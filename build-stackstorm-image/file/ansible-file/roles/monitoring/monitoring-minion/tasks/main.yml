@@ -1,0 +1,17 @@
+---
+
+- name: create monitoring-minion directory
+  file: path=/opt/chinacloud/monitoring-minion state=directory mode=0755
+
+- name:  stop monitoring-minion
+  shell: cd /opt/chinacloud/monitoring-minion && docker-compose -f ./docker-compose.yml down
+  ignore_errors: yes
+
+- name: backup old monitoring-minion version
+  shell: tar -cf /opt/chinacloud/monitoring-minion-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/monitoring-minion && rm -rf  /opt/chinacloud/monitoring-minion/*
+
+- name: create /opt/chinacloud/monitoring-minion
+  template: src=docker-compose.yml dest=/opt/chinacloud/monitoring-minion/ mode=0755
+
+- name:  start monitoring-minion
+  shell: cd /opt/chinacloud/monitoring-minion && docker-compose -f ./docker-compose.yml  up -d

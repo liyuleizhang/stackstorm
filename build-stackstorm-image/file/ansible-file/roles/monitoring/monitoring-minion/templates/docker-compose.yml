@@ -1,0 +1,34 @@
+version: '2.1'
+services:
+  node-exporter:
+    container_name: node-exporter
+    image: {{ docker_registry }}/monitoring/node-exporter:v0.18.0
+    command:
+      - "--web.listen-address=0.0.0.0:9110"
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+)($$|/)"
+      - "--collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$$"
+    restart: always
+    cap_add:
+      - SYS_TIME
+    ports:
+      - "9110:9110"
+    volumes:
+      - /:/host:ro
+      - /proc:/host/proc
+      - /sys:/host/sys
+
+  cadvisor:
+    container_name: cadvisor
+    image: {{ docker_registry }}/monitoring/cadvisor:v0.33.0
+    restart: always
+    privileged: true
+    ports:
+      - "9111:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /cgroup:/cgroup:ro
+      - /var/lib/docker/:/var/lib/docker:ro

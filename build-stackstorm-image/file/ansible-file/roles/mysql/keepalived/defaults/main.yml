@@ -1,0 +1,10 @@
+# Keeplived VRRP网卡
+vrrp_interface_name: ens192
+# Keeplived VIP广播地址
+vrrp_brd: 172.16.1.255
+# Keeplived VIP地址
+vrrp_vip: 172.16.1.199/23
+# Mysql MGR User
+db_user: root
+# Mysql MGR Password
+db_passwd: root_password

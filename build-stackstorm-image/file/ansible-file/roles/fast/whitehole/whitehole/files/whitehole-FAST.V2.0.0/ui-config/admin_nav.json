@@ -1,0 +1,467 @@
+[{
+	"name": "审批管理",
+	"href": "#",
+	"icon": "icon-yhzx2",
+	"state": "fast.admin.order.application({page:1})",
+	"navId": "abc",
+	"permission": "",
+	"children": [{
+		"name": "已办申请单",
+		"href": "fast.admin.finished",
+		"state": "fast.admin.finished",
+		"navId": "fast.admin.unfinished",
+		"permission": ""
+	},
+	{
+		"name": "待办申请单",
+		"href": "fast.admin.unfinished",
+		"state": "fast.admin.unfinished",
+		"navId": "fast.admin.unfinished",
+		"permission": ""
+	},
+	{
+		"name": "全部申请单",
+		"href": "fast.admin.application",
+		"state": "fast.admin.application",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "应用总览",
+	"href": "fast.admin.dashboard",
+	"ENV_KEY": "fast-oo",
+	"icon": "icon-yyzl1",
+	"state": "fast.admin.dashboard",
+	"navId": "abc",
+	"permission": true
+},
+{
+	"name": "概览",
+	"href": "fast.admin.wh.dashboard",
+	"ENV_KEY": "fast-oo",
+	"icon": "icon-yyzl1",
+	"state": "fast.admin.wh.dashboard",
+	"navId": "abc",
+	"permission": true
+},
+{
+	"name": "用户中心",
+	"href": "#",
+	"icon": "icon-yhzx2",
+	"state": "fast.admin.userCenter",
+	"ENV_KEY": "fast-oo",
+	"navId": "abc",
+	"permission": "",
+	"children": [{
+		"name": "单位管理",
+		"href": "fast.admin.messageManage",
+		"state": "fast.admin.messageManage",
+		"navId": "abc",
+		"permission": ""
+	},
+	{
+		"name": "用户管理",
+		"href": "fast.admin.userManage",
+		"state": "fast.admin.userManage",
+		"navId": "abc",
+		"permission": ""
+	},
+	{
+		"name": "用户角色",
+		"href": "fast.admin.userCenter.userRole",
+		"state": "fast.admin.userCenter.userRole",
+		"navId": "fast.admin.userCenter.userRole",
+		"permission": ""
+	},
+	{
+		"name": "管理员管理",
+		"href": "cc.personal.s11",
+		"state": "cc.personal.s11",
+		"navId": "cc_per_nav_proc_stat",
+		"permission": ""
+	},
+	{
+		"name": "管理员角色",
+		"href": "fast.admin.userCenter.managerRole",
+		"state": "fast.admin.userCenter.managerRole",
+		"navId": "fast.admin.userCenter.managerRole",
+		"permission": ""
+	}]
+},
+{
+	"name": "资源规划",
+	"href": "#",
+	"ENV_KEY": "fast-oo",
+	"icon": "icon-zygh2",
+	"state": "fast.admin.resourcePlan",
+	"navId": "cc_per_nav_unfinished",
+	"permission": "",
+	"children": [{
+		"name": "分区管理",
+		"href": "fast.admin.resourcePlan.namespaceManagement",
+		"state": "fast.admin.resourcePlan.namespaceManagement",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "资源接入",
+	"href": "#",
+	"icon": "icon-zyjr2",
+	"state": "cc.personal.s1",
+	"navId": "cc_per_nav_finished",
+	"permission": "",
+	"children": [{
+		"name": "环境管理",
+		"href": "cc.personal.s13",
+		"state": "cc.personal.s13",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "节点管理",
+		"href": "#",
+		"state": "#",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "资源池管理",
+		"href": "#",
+		"state": "#",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "交付中心",
+	"href": "#",
+	"icon": "icon-jfzx1",
+	"state": "fast.admin.deliveryCenter",
+	"navId": "cc_per_nav_statistic",
+	"permission": "$rootScope.PersonalMessageStatisticsResourceFlag,",
+	"children": [{
+		"name": "镜像模板",
+		"href": "fast.admin.deliveryCenter.imageTemplate",
+		"state": "fast.admin.deliveryCenter.imageTemplate",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "镜像仓库",
+		"href": "fast.admin.deliveryCenter.imageRepository.list({group:preset})",
+		"state": "fast.admin.deliveryCenter.imageRepository",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "应用管理",
+	"href": "#",
+	"icon": "icon-yygl1",
+	"state": "fast.admin.applicationManagement",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "应用",
+		"href": "fast.admin.applicationManagement.applicationList",
+		"state": "fast.admin.applicationManagement.applicationList",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "服务",
+		"href": "fast.admin.applicationManagement.serviceList",
+		"state": "fast.admin.applicationManagement.serviceList",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "容器",
+		"href": "fast.admin.applicationManagement.podList",
+		"state": "fast.admin.applicationManagement.podList",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "资源管理",
+	"href": "#",
+	"icon": "icon-zygl2",
+	"state": "cc.personal.s1",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "访问入口",
+		"href": "cc.personal.s1",
+		"state": "cc.personal.s1",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "存储卷",
+		"href": "cc.personal.s2",
+		"state": "cc.personal.s2",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "服务规划",
+	"href": "#",
+	"ENV_KEY": "fast-oo",
+	"icon": "icon-zygl2",
+	"state": "fast.admin.servicePlan",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "服务目录",
+		"href": "fast.admin.servicePlan.catalogList",
+		"state": "fast.admin.servicePlan.catalogList",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "服务标签",
+		"href": "fast.admin.servicePlan.serviceTag",
+		"state": "fast.admin.servicePlan.serviceTag",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "服务管理",
+	"href": "#",
+	"ENV_KEY": "fast-oo",
+	"icon": "icon-zygl2",
+	"state": "fast.admin.serviceManagement",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "API服务",
+		"href": "fast.admin.serviceManagement.apiService",
+		"state": "fast.admin.serviceManagement.apiService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "通用服务",
+		"href": "fast.admin.serviceManagement.whbuService",
+		"state": "fast.admin.serviceManagement.whbuService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "数据编目服务",
+		"href": "fast.admin.serviceManagement.catalogService",
+		"state": "fast.admin.serviceManagement.catalogService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "人工服务",
+		"href": "fast.admin.serviceManagement.artificialService",
+		"state": "fast.admin.serviceManagement.artificialService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "服务实例管理",
+	"href": "#",
+	"ENV_KEY": "fast-oo",
+	"icon": "icon-zygl2",
+	"state": "fast.admin.instancemanagement",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "API服务",
+		"href": "fast.admin.instancemanagement.apiService",
+		"state": "fast.admin.instancemanagement.apiService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "通用服务",
+		"href": "fast.admin.instancemanagement.whbuService",
+		"state": "fast.admin.instancemanagement.whbuService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "数据编目服务",
+		"href": "fast.admin.instancemanagement.dataService",
+		"state": "fast.admin.instancemanagement.dataService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "人工服务",
+		"href": "fast.admin.instancemanagement.artificialService",
+		"state": "fast.admin.instancemanagement.artificialService",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "流程管理",
+	"href": "#",
+	"ENV_KEY": "fast-oo",
+	"icon": "icon-zygl2",
+	"state": "fast.admin.processManagement",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "流程管理",
+		"href": "fast.admin.processManagement.main",
+		"state": "fast.admin.processManagement.main",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "系统配置",
+	"href": "#",
+	"icon": "icon-xtpz2",
+	"state": "fast.admin.systemConfig",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "个性化配置",
+		"href": "fast.admin.systemConfig.personalConfig",
+		"state": "fast.admin.systemConfig.personalConfig",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "安全配置",
+		"href": "fast.admin.systemConfig.securityConfig",
+		"state": "fast.admin.systemConfig.securityConfig",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "系统参数配置",
+		"href": "fast.admin.systemConfig.systemParamConfig",
+		"state": "fast.admin.systemConfig.systemParamConfig",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "邮件服务器配置",
+		"href": "fast.admin.systemConfig.mailServerConfig",
+		"state": "fast.admin.systemConfig.mailServerConfig",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "系统监控",
+	"href": "#",
+	"icon": "icon-xtjk2",
+	"state": "cc.personal.st111",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "主机监控",
+		"href": "cc.personal.st111",
+		"state": "cc.personal.st111",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "组件监控",
+		"href": "cc.personal.st111",
+		"state": "cc.personal.st111",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "告警历史",
+		"href": "fast.admin.systemMonitor.alarmHistory",
+		"state": "fast.admin.systemMonitor.alarmHistory",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "审计管理",
+	"href": "#",
+	"icon": "icon-sjgl1",
+	"state": "fast.admin.auditManagement.",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "系统日志",
+		"href": "fast.admin.auditManagement.systemLog",
+		"state": "fast.admin.auditManagement.systemLog",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "审计日志",
+		"href": "fast.admin.auditManagement.auditLog",
+		"state": "fast.admin.auditManagement.auditLog",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "登录日志",
+		"href": "fast.admin.auditManagement.loginLog",
+		"state": "fast.admin.auditManagement.loginLog",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "统计报表",
+	"href": "#",
+	"icon": "icon-tjbb2",
+	"state": "cc.personal.st111",
+	"navId": "cc_per_nav_statistic",
+	"permission": "",
+	"children": [{
+		"name": "运维报表",
+		"href": "cc.personal.st111",
+		"state": "cc.personal.st111",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	},
+	{
+		"name": "资源报表",
+		"href": "cc.personal.st111",
+		"state": "cc.personal.st111",
+		"navId": "cc_per_nav_serv_stat",
+		"permission": ""
+	}]
+},
+{
+	"name": "服务统计",
+	"href": "#",
+	"icon": "icon-tjbb2",
+	"state": "fast.admin.serviceStatistics",
+	"navId": "cc_per_nav_ser_statistic",
+	"permission": "",
+	"children": [{
+		"name": "部门服务统计",
+		"href": "fast.admin.serviceStatistics.sectionServiceStatistics",
+		"state": "fast.admin.serviceStatistics.sectionServiceStatistics",
+		"navId": "cc_per_nav_ser_statistic",
+		"permission": ""
+	},
+	{
+		"name": "监控统计",
+		"href": "fast.admin.serviceStatistics.monitorStatistics",
+		"state": "fast.admin.serviceStatistics.monitorStatistics",
+		"navId": "cc_per_nav_ser_statistic",
+		"permission": ""
+	},
+	{
+		"name": "服务访问日志",
+		"href": "fast.admin.serviceStatistics.serviceAccessLog",
+		"state": "fast.admin.serviceStatistics.serviceAccessLog",
+		"navId": "cc_per_nav_ser_statistic",
+		"permission": ""
+	}]
+}]

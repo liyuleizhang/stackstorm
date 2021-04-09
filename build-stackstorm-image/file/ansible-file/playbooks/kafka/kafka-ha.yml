@@ -1,0 +1,4 @@
+---
+- hosts: kafka_ha
+  roles:
+    - kafka/kafka_ha

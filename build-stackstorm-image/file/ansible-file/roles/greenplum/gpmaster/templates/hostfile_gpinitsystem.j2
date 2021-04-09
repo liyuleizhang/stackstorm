@@ -1,0 +1,5 @@
+{% for k,v in hostvars.items() %}
+{% if k in groups['gpsegment_servers'] %}
+{{ hostvars[k].inventory_hostname }}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,1 @@
+grant all privileges on *.* to root@'%' identified by '{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}' with grant option;

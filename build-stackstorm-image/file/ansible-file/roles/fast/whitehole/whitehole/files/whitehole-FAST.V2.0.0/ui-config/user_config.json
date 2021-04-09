@@ -1,0 +1,19 @@
+{
+  "header": {
+    "msgUrl": "/fast/messageManagement/all",
+    "allWoUrl": "/fast/workOrderManagement/all",
+    "newWoUrl": "/fast/workOrderManagement/new",
+    "homeTenantUrl": "/fast//home/my-tenant",
+    "homeLogUrl": "/fast/home/login-log",
+    "dashboard": "/fast/dashboardOneUI"
+  },
+  "systemId": "2",
+  "hideNav": "false",
+  "isWorkOrderPermission": "true",
+  "isMessagePermission": "true",
+  "isOnlinePermission": "true",
+  "defaultUrl": "/wh-ui/dashboard",
+  "isHeaderDownMenu": "true",
+  "isHeaderAllProducts": "true",
+  "isHeaderOverview": "true"
+}

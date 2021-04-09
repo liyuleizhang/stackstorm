@@ -1,0 +1,9 @@
+---
+
+- name: Deploy mysql
+  hosts: mysql
+  roles:
+    - mysql/mysql
+  tags: mysql
+
+

@@ -1,0 +1,96 @@
+version: '3'
+services:
+  astrolabe:
+    image: liyulei.f3322.net:8082/stackstorm/stackstorm:3.1
+    container_name: astrolabe
+    env_file:
+      - ./conf/envs/astrolabe.env
+      - ./conf/envs/mongo.env
+      - ./conf/envs/rabbitmq.env
+      - ./conf/envs/postgres.env
+      - ./conf/envs/redis.env
+    network_mode: host
+    restart: always
+    depends_on:
+      - mongo
+      - postgres
+      - rabbitmq
+      - redis
+    volumes:
+      - /root/.ssh:/root/.ssh
+      - stackstorm-packs-volume:/opt/stackstorm/packs
+      - stackstorm-virtualenvs-volume:/opt/stackstorm/virtualenvs
+      - stackstorm-configs-volume:/opt/stackstorm/configs
+      - stackstorm-log-volume:/var/log
+    dns_search: .
+    privileged: true
+
+#  docs:
+#    image: liyulei.f3322.net:8082/astrolabe/docs:1.0.7
+#    container_name: docs
+#    ports:
+#      - "8000:80"
+#    tty: true
+
+  mongo:
+    image: liyulei.f3322.net:8082/library/mongo:3.4
+    container_name: mongo
+    env_file:
+      - conf/envs/mongo.env
+    network_mode: host
+    restart: always
+    volumes:
+      - mongo-volume:/data/db
+      - mongo-configdb-volume:/data/configdb
+    dns_search: .
+
+  rabbitmq:
+    image: liyulei.f3322.net:8082/library/rabbitmq:3.6-management
+    container_name: rabbitmq
+    env_file:
+      - conf/envs/rabbitmq.env
+    network_mode: host
+    restart: always
+    volumes:
+      - rabbitmq-volume:/var/lib/rabbitmq
+    dns_search: .
+
+  postgres:
+    image: liyulei.f3322.net:8082/library/postgres:9.6
+    container_name: postgres
+    env_file:
+      - conf/envs/postgres.env
+    network_mode: host
+    restart: always
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    dns_search: .
+
+  redis:
+    image: liyulei.f3322.net:8082/library/redis:4.0
+    container_name: redis
+    env_file:
+      - conf/envs/redis.env
+    network_mode: host
+    restart: always
+    volumes:
+      - redis-volume:/data
+    dns_search: .
+    command: [
+      "bash", "-c",
+      '
+       docker-entrypoint.sh
+       --requirepass "$$REDIS_PASSWORD"
+      '
+    ]
+
+volumes:
+  mongo-volume:
+  mongo-configdb-volume:
+  postgres-volume:
+  rabbitmq-volume:
+  redis-volume:
+  stackstorm-packs-volume:
+  stackstorm-virtualenvs-volume:
+  stackstorm-configs-volume:
+  stackstorm-log-volume:

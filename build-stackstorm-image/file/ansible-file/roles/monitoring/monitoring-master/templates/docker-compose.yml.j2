@@ -1,0 +1,58 @@
+version: '2.1'
+services:
+  prometheus:
+    container_name: prometheus
+    image: {{ docker_registry }}/monitoring/prometheus:v2.5.0
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/var/lib/prometheus"
+      - "--storage.tsdb.retention=24h"
+      - "--storage.tsdb.no-lockfile"
+      - "--web.enable-lifecycle"
+      - "--web.route-prefix=/"
+    restart: always
+    user: "0:0"
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/var/lib/prometheus
+      - /opt/chinacloud/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:z
+      - /opt/chinacloud/monitoring/recording.rules:/etc/prometheus/recording.rules:z
+      - /etc/localtime:/etc/localtime
+
+  altermanager:
+    container_name: altermanager
+    image: {{ docker_registry }}/monitoring/alertmanager:v0.15.3
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yaml"
+      - "--storage.path=/var/lib/altermanager"
+      - "--data.retention=120h"
+      - "--web.listen-address=:9093"
+      - "--web.route-prefix=/"
+    restart: always
+    ports:
+      - "9093:9093"
+    volumes:
+      - /opt/chinacloud/monitoring/altermanager.yml:/etc/alertmanager/alertmanager.yaml:z
+      - altermanager_data:/var/lib/altermanager
+      - /etc/localtime:/etc/localtime
+
+  grafana:
+    container_name: grafana
+    image: {{ docker_registry }}/monitoring/grafana:5.4.3-with-plugins
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - "GF_SECURITY_ADMIN_PASSWORD=admin"
+      - "GF_PATHS_PROVISIONING=/etc/grafana/provisioning"
+      - "GF_AUTH_ANONYMOUS_ENABLED=true"
+      - "GF_USERS_DEFAULT_THEME=light"
+    volumes:
+      - /opt/chinacloud/monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:z
+      - /opt/chinacloud/monitoring/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:z
+      - /opt/chinacloud/monitoring/nodes-overview.json:/grafana-dashboard-definitions/nodes-overview.json
+
+volumes:
+  prometheus_data:
+  altermanager_data:

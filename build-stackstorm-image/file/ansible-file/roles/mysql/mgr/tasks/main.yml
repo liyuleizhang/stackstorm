@@ -1,0 +1,116 @@
+---
+
+- name: Install mariadb
+  yum:
+    name: mariadb
+    update_cache: yes
+    state: installed
+    use_backend: yum
+
+- name: Install mysql-shell
+  yum:
+    name: mysql-shell
+    update_cache: yes
+    state: installed
+    use_backend: yum
+
+- name: check mysql dir
+  shell: grep -r "/opt/chinacloud/mysql_mgr" /etc/rc.local
+  register: check_mysql_mgr_mount_point
+  ignore_errors: True
+  failed_when: check_mysql_mgr_mount_point.rc == 0
+
+- name: create mysql_mgr directory
+  file: path=/opt/chinacloud/mysql_mgr state=directory mode=0755
+
+- name:  stop mysql_mgr
+  shell: cd /opt/chinacloud/mysql_mgr && docker-compose -f ./docker-compose.yml down
+  ignore_errors: yes
+
+- name: backup old mysql_mgr version
+  shell: tar -cf /opt/chinacloud/mysql_mgr-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/mysql_mgr && rm -rf  /opt/chinacloud/mysql_mgr/*
+
+- name: copy mysql install file to /opt
+  copy: src=mysql_mgr/ dest=/opt/chinacloud/mysql_mgr/ mode=0755
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh mode=0755
+
+- name: set mysql root password
+  shell: /tmp/init-ip.sh /opt/chinacloud/mysql_mgr/ {DB_ROOT_PASSWD} {% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}
+
+- name: replace hubble ip
+  shell: /tmp/init-ip.sh /opt/chinacloud/mysql_mgr/ {ONEX_IP} {% if (ONEX_VIP is defined) and (ONEX_VIP != '') %} {{ ONEX_VIP }} {% else %} {{ hostvars[groups['onex_servers'][0]]['ansible_host'] }} {% endif %}
+  ignore_errors: yes
+
+- name: create mysql_mgr db directory
+  file: path=/opt/chinacloud/mysql_mgr/db state=directory mode=0755 group=root owner=1001
+
+- name: create mysql_mgr log directory
+  file: path=/opt/chinacloud/mysql_mgr/log state=directory mode=0777 group=root owner=1001
+
+- name: create mysql_mgr init_db directory
+  file: path=/opt/chinacloud/mysql_mgr/init_db state=directory mode=0755
+
+- name: add ha my.env configure
+  template: src=mysql.env.j2 dest=/opt/chinacloud/mysql_mgr/conf/mysql.env
+
+- name: add ha my.cnf configure
+  template: src=my.cnf.j2 dest=/opt/chinacloud/mysql_mgr/conf/my.cnf
+
+- name: init-user.sql
+  template: src=init_user.sql.j2 dest=/opt/chinacloud/mysql_mgr/mysql-init-sql/init_user.sql
+
+- name: add ha my.cnf configure
+  template: src=docker-compose.yml.j2 dest=/opt/chinacloud/mysql_mgr/docker-compose.yml
+
+- name:  pull mysql_mgr images
+  shell: cd /opt/chinacloud/mysql_mgr && docker-compose  -f ./docker-compose.yml pull
+
+- name:  start mysql_mgr
+  shell: cd /opt/chinacloud/mysql_mgr && docker-compose -f ./docker-compose.yml up -d
+
+- action: shell docker-compose -f /opt/chinacloud/mysql_mgr/docker-compose.yml ps|grep mysql
+  register: result
+  until: result.stdout.find("(healthy)") != -1
+  retries: 20
+  delay: 20
+
+- name: add MakeCluster.js
+  template: src=MakeCluster.js.j2 dest=/opt/chinacloud/mysql_mgr/MakeCluster.js
+  when: server_id == 1
+
+- name:  make cluster
+  shell: /usr/bin/mysqlsh -f /opt/chinacloud/mysql_mgr/MakeCluster.js
+  when: server_id == 1
+
+- name: add CheckCluster.js
+  template: src=CheckCluster.js.j2 dest=/opt/chinacloud/mysql_mgr/CheckCluster.js
+
+- name:  check cluster
+  shell: /usr/bin/mysqlsh -f /opt/chinacloud/mysql_mgr/CheckCluster.js
+  register: result
+  until: result.stdout.find("(RECOVERING)") == -1
+  retries: 20
+  delay: 20
+  when: server_id == 1
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh mode=0755
+
+- name: replace fast-onex ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/mysql_mgr/  {ONEX_IP}  {% if (ONEX_VIP is defined) and (ONEX_VIP != '') %} {{ ONEX_VIP }} {% else %} {{ hostvars[groups['onex_servers'][0]]['ansible_host'] }} {% endif %}
+
+- name: init mysql data
+  shell: mysql -u{% if db_user %}{{db_user}}{% else %}root{% endif %} -p{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %} -h{{ansible_host}}</opt/chinacloud/mysql_mgr/mysql-init-sql/{{ item }}
+  with_items:
+    - "onex-init-1.sql"
+    - "onex-init-2.sql"
+    - "onex-init-3.sql"
+    - "hubble-init.sql"
+    - "fast-wh-init.sql"
+    - "fast-wso2-apimgtdb-init.sql"
+    - "fast-wso2-mbstoredb-init.sql"
+    - "fast-wso2-statsdb-init.sql"
+    - "fast-wso2-userdb-init.sql"
+  when: server_id == 1

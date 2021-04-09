@@ -1,0 +1,129 @@
+# ！需要在部署机设置所有节点host
+# ！所有节点hostanme不应该包含“.”，见： https://tools.ietf.org/html/rfc952
+
+# 不要修改此行内容
+# 见：https://dmsimard.com/2016/01/08/selinux-python-virtualenv-chroot-and-ansible-dont-play-nice/
+# localhost ansible_python_interpreter=/usr/bin/python
+
+registry ansible_host=172.16.1.145   ansible_port=22     ansible_user=root   ansible_password=centos
+
+# cdh节点列表
+# cdh30   ansible_host=172.16.1.140   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# cdh31   ansible_host=172.16.1.141   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# cdh32   ansible_host=172.16.1.142   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# cdh33   ansible_host=172.16.1.143   ansible_port=22     ansible_user=root   ansible_password=hadoop
+# cdh34   ansible_host=172.16.1.144   ansible_port=22     ansible_user=root   ansible_password=hadoop
+
+# greenplum节点列表
+# The Greenplum Database host naming convention for the master host is mdw and for the standby master host is smdw.
+# The segment host naming convention is sdwN where sdw is a prefix and N is an integer.
+# For example, segment host names would be sdw1, sdw2 and so on.
+# NIC bonding is recommended for hosts with multiple interfaces, but when the interfaces are not bonded,
+# the convention is to append a dash (-) and number to the host name. For example, sdw1-1 and sdw1-2 are the two interface names for host sdw1.
+mdw      ansible_host=172.16.1.140   ansible_port=22     ansible_user=root   ansible_password=hadoop
+#smdw    ansible_host=172.16.1.40   ansible_port=22     ansible_user=root   ansible_password=hadoop
+sdw41    ansible_host=172.16.1.141   ansible_port=22     ansible_user=root   ansible_password=hadoop
+sdw42    ansible_host=172.16.1.142   ansible_port=22     ansible_user=root   ansible_password=hadoop
+sdw43    ansible_host=172.16.1.143   ansible_port=22     ansible_user=root   ansible_password=hadoop
+sdw44    ansible_host=172.16.1.144   ansible_port=22     ansible_user=root   ansible_password=hadoop
+
+########################################################################################################
+# Common Groups
+########################################################################################################
+
+[registry_server]
+registry chrony_role=server
+
+[chrony_servers:children]
+registry_server
+# scm_server
+# db_server
+# krb5_server
+# gateway_servers
+# edge_servers
+# master_servers
+# worker_servers
+gpmaster_servers
+gpsegment_servers
+# mgr_primary
+# mgr_slave
+
+########################################################################################################
+# CDH Groups
+########################################################################################################
+
+# [scm_server]
+# cdh30
+
+# [db_server]
+# cdh30
+
+# [krb5_server]
+# cdh30
+
+# [utility_servers:children]
+# scm_server
+# db_server
+# krb5_server
+
+# [gateway_servers]
+# cdh30 host_template=HostTemplate-Gateway
+
+# [edge_servers]
+# cdh30 host_template=HostTemplate-Edge role_ref_names=HDFS-HTTPFS-1
+
+# [master_servers]
+# cdh30 host_template=HostTemplate-Master1
+# <host> host_template=HostTemplate-Master2
+# <host> host_template=HostTemplate-Master3
+
+# [worker_servers]
+# cdh31
+# cdh32
+# cdh33
+# cdh34
+
+# [worker_servers:vars]
+# host_template=HostTemplate-Workers
+
+# [cdh_servers:children]
+# utility_servers
+# gateway_servers
+# master_servers
+# worker_servers
+
+########################################################################################################
+# Greenplum Groups
+########################################################################################################
+
+[gpmaster_servers]
+mdw
+
+[gpsegment_servers]
+sdw41
+sdw42
+sdw43
+sdw44
+
+[gp_servers:children]
+gpmaster_servers
+gpsegment_servers
+
+########################################################################################################
+# Mysql MGR Groups
+########################################################################################################
+
+#[mgr_primary]
+#mdw server_id=1 vrrp_state=MASTER vrrp_priority=100
+
+#[mgr_slave]
+#sdw41 server_id=2 vrrp_state=BACKUP vrrp_priority=90
+#sdw42 server_id=3 vrrp_state=BACKUP vrrp_priority=90
+#sdw43 server_id=4 vrrp_state=BACKUP vrrp_priority=90
+#sdw44 server_id=5 vrrp_state=BACKUP vrrp_priority=90
+
+#[mgr_servers:children]
+#mgr_primary
+#mgr_slave
+
+

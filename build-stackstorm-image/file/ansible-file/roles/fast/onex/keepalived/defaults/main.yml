@@ -1,0 +1,6 @@
+# Keeplived VIP广播地址
+ONEX_VRRP_BRD: 172.16.1.255
+# Keeplived CIDR VIP地址
+ONEX_VRRP_VIP: 172.16.1.136/23
+# Keeplived VIP地址
+ONEX_VIP: 172.16.1.136

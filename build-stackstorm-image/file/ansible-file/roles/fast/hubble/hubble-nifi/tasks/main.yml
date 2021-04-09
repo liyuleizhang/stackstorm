@@ -1,0 +1,64 @@
+---
+
+- name: create hubble-nifidirectory
+  file: path=/opt/chinacloud/hubble-nifi state=directory mode=0755
+
+- name:  stop hubble-nifi
+  shell: cd /opt/chinacloud/hubble-nifi   && docker-compose -f ./docker-compose.yml  down
+  ignore_errors: yes
+
+- name: backup old hubble-nifi version
+  shell: tar -cf /opt/chinacloud/hubble-nifi-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/hubble-nifi && rm -rf  /opt/chinacloud/hubble-nifi/*
+
+- name: copy hubble-nififile to /opt/chinacloud
+  copy: src=./ dest=/opt/chinacloud/hubble-nifi/  mode=0755
+
+# 生成global.env
+- name: generate global.env
+  template:
+    src: global.env.j2
+    dest: /opt/chinacloud/hubble-nifi/global.env
+
+# 生成docker-compose.yml
+- name: generate docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/chinacloud/hubble-nifi/docker-compose.yml
+
+# 生成mysql-router.env
+- name: generate mysql-router.env
+  template:
+    src: mysql-router.env.j2
+    dest: /opt/chinacloud/hubble-nifi/mysql-router.env
+  when: ONEX_VIP is defined and ONEX_VIP != ''
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh   mode=0755
+
+- name: set variables
+  set_fact:
+    MYSQL_IP: "{% if db_ip %}{{ db_ip }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}{{ ansible_default_ipv4.address }}{% else %}{{ hostvars[groups['mysql'][0]]['ansible_host'] }}{% endif %}"
+    MYSQL_PORT: "{% if db_port %}{{ db_port }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}6452{% else %}3306{% endif %}"
+
+- name: replace db ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-nifi/  {MYSQL_DESTINATION_IP}  {{ MYSQL_IP }}
+
+# application.yml里用到了数据库端口
+- name: replace db port
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-nifi/  {MYSQL_DESTINATION_PORT}  {{ MYSQL_PORT }}
+
+- name: replace hubble_standalone ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-nifi/  {HUBBLE_STANDALONE_IP}  {{ hostvars[groups['hb_standalone'][0]]['ansible_host'] }}
+
+- name:  pull hubble-nifi images
+  shell: cd /opt/chinacloud/hubble-nifi && docker-compose  -f ./docker-compose.yml pull
+
+- name:  start hubble-nifi
+  shell: cd /opt/chinacloud/hubble-nifi  && docker-compose -f ./docker-compose.yml  up -d
+
+- name: wait nifi come alive
+  action: shell docker-compose -f /opt/chinacloud/hubble-nifi/docker-compose.yml ps|grep hubble-nifi
+  register: result
+  until: result.stdout.find("(healthy)") != -1
+  retries: 20
+  delay: 20

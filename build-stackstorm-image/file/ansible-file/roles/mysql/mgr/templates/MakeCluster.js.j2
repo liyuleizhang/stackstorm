@@ -1,0 +1,27 @@
+#!/usr/bin/mysqlsh --file
+var dbUser = "{% if db_user %}{{ db_user }}{% else %}root{% endif %}"
+var dbPass = "{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}"
+var clusterName = "dc"
+
+try {
+    print('Setting up InnoDB cluster...\n');
+
+    shell.connect('{% if db_user %}{{ db_user }}{% else %}root{% endif %}@{{ ansible_default_ipv4.address }}', dbPass)
+    var cluster = dba.createCluster(clusterName, {
+        memberSslMode: 'DISABLED',
+        ipWhitelist: '{% for host in groups["mgr_servers"] %}{{ hostvars[host].ansible_default_ipv4.address }}{% if loop.nextitem is defined %},{% endif %}{% endfor %}'
+    });
+
+    print('Adding instances to the cluster.');
+
+    {% for host in groups['mgr_slave'] %}
+    dba.checkInstanceConfiguration({ port: 3306, host: '{{ hostvars[host].ansible_default_ipv4.address }}', password: dbPass, user: dbUser })
+    dba.configureInstance({ port: 3306, host: '{{ hostvars[host].ansible_default_ipv4.address }}', password: dbPass, user: dbUser })
+    cluster.addInstance({ port: 3306, host: '{{ hostvars[host].ansible_default_ipv4.address }}', password: dbPass, user: dbUser }, {recoveryMethod: 'incremental', memberSslMode: 'DISABLED'})
+    print('.\nInstances successfully added to the cluster.');
+    {% endfor %}
+
+    print('\nInnoDB cluster deployed successfully.\n');
+} catch (e) {
+    print('\nThe InnoDB cluster could not be created.\n\nError: ' + e.message + '\n');
+}

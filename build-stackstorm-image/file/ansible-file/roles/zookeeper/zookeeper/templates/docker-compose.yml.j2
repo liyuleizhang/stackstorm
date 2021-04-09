@@ -1,0 +1,14 @@
+version: '2.1'
+services:
+  zookeeper:
+    image: {{ docker_registry }}/library/zookeeper:{{ zookeeper_tag }}
+    container_name: zoo
+    restart: always
+    healthcheck:
+      test: zkServer.sh status
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - /etc/localtime:/etc/localtime
+    network_mode: "host"

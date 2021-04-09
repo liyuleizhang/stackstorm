@@ -1,0 +1,13 @@
+---
+
+- name: Deploy Monitoring Minion
+  hosts: monitoring-minion
+  roles:
+    - monitoring/monitoring-minion
+  tags: monitoring-minion
+
+- name: Deploy Monitoring Master
+  hosts: monitoring-master
+  roles:
+    - monitoring/monitoring-master
+  tags: monitoring-master

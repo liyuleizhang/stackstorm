@@ -1,0 +1,13 @@
+---
+
+- include_vars: ../../../../common_vars/common.yml
+
+- name: disable firewalld
+  service:
+    name: firewalld
+    enabled: no
+    state: stopped
+
+- name: Install RPMs
+  yum:
+    name={{ install_yum_packages }} state=installed update_cache=yes use_backend=yum

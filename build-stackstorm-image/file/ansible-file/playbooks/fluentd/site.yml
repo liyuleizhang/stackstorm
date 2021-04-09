@@ -1,0 +1,13 @@
+---
+
+- name: Install Fluentd
+  hosts: registry
+  roles:
+    - fluentd/fluentd
+  tags: fluentd
+
+- name: Install Fluent-bit
+  hosts: all,!registry
+  roles:
+    - fluentd/fluentbit
+  tags: fluentbit

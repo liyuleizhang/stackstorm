@@ -1,0 +1,12 @@
+---
+
+- stat:
+    path: /usr/local/bin/docker-compose
+  register: docker_compose
+
+- name: Download Docker Compose
+  get_url:
+    url: "{{ docker_compose_download_url }}"
+    dest: /usr/local/bin/docker-compose
+    mode: 0755
+  when: not docker_compose.stat.exists

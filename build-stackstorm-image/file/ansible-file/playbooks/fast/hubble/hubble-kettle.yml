@@ -1,0 +1,5 @@
+---
+
+- hosts: hb_kettle
+  roles:
+    - fast/hubble/hubble-kettle

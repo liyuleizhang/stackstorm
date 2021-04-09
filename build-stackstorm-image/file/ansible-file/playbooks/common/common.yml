@@ -1,0 +1,45 @@
+---
+
+- import_playbook: block_repos.yml
+
+- name: Configure machine hosts
+  hosts: servers
+  roles:
+    - common/hostname
+  tags: hostname
+
+- name: Configure ssh passwordless
+  hosts: servers
+  roles:
+    - common/ssh
+  tags: ssh
+
+- name: Configure YUM Repository
+  hosts: servers,!registry
+  roles:
+    - common/yum_repos
+  tags: repos
+
+- name: Apply miscs
+  hosts: servers,!registry
+  roles:
+    - common/miscs
+  tags: miscs
+
+- name: Install chrony
+  hosts: servers
+  roles:
+    - common/chrony
+  tags: chrony
+
+- name: Install Docker CE
+  hosts: "{{ docker_hosts | default('servers,!registry') }}"
+  roles:
+    - common/docker
+  tags: docker
+
+- name: Install Docker Compose
+  hosts: servers # registry也需要安装，升级registry docker-compose版本
+  roles:
+    - common/docker-compose
+  tags: docker-compose

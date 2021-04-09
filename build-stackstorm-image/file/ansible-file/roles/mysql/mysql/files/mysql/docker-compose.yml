@@ -1,0 +1,21 @@
+version: '2.1'
+services:
+  mysql:
+    image: hub.chinacloud.com.cn/common.dev/mysql:5.6
+    container_name: mysql
+    restart: always
+    volumes:
+      - ./mysql:/var/lib/mysql
+      - ./mysql-init-sql:/docker-entrypoint-initdb.d/
+      - /etc/localtime:/etc/localtime
+      - ./my.cnf:/etc/mysql/my.cnf
+    env_file:
+      - mysql.env
+    healthcheck:
+      test: mysqladmin -uroot -proot ping
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    network_mode: "host"
+
+

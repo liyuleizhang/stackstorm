@@ -1,0 +1,64 @@
+# 公司内部tensorflow测试环境
+# 需要在部署机设置所有节点host( TODO: 检查本机是否能够ping通所有节点)
+# （重要）所有节点hostanme不应该包含“.”，见： https://tools.ietf.org/html/rfc952
+registry    ansible_host=172.16.60.24   ansible_port=22     ansible_user=root   ansible_password=chinacloud
+cdh45       ansible_host=172.16.1.45    ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh46       ansible_host=172.16.1.46    ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh47       ansible_host=172.16.1.47    ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh48       ansible_host=172.16.1.48    ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh49       ansible_host=172.16.1.49    ansible_port=22     ansible_user=root   ansible_password=hadoop
+
+[registry]
+registry chrony_role=server
+
+[scm_server]
+cdh45
+
+[db_server]
+cdh45
+
+[krb5_server]
+cdh45
+
+[utility_servers:children]
+scm_server
+db_server
+krb5_server
+
+[gateway_servers]
+cdh45 host_template=HostTemplate-Gateway
+
+[edge_servers]
+cdh45 host_template=HostTemplate-Edge role_ref_names=HDFS-HTTPFS-1
+
+[master_servers]
+cdh46 host_template=HostTemplate-Master1
+
+[worker_servers]
+cdh47
+cdh48
+cdh49
+
+[worker_servers:vars]
+host_template=HostTemplate-Workers
+
+[cdh_servers:children]
+utility_servers
+gateway_servers
+master_servers
+worker_servers
+
+[chrony_servers:children]
+scm_server
+db_server
+krb5_server
+gateway_servers
+edge_servers
+master_servers
+worker_servers
+
+# TODO: vars不生效
+[all:vars]
+cloudera_repo=http://172.16.60.24:8081/repository/cdh-yum-proxy
+cloudera_parcels=http://172.16.60.24:8081/repository/cdh-parcels-proxy
+java_mysql_connector_download_url=http://172.16.60.24:8081/repository/miscs/cdh/mysql-connector-java-5.1.48.zip

@@ -1,0 +1,9 @@
+repos:
+    - datasourceId: demo
+      datasourceName: demo资源库
+      datasourceInfo:
+        databaseIp: ip
+        port: port
+        dbName: dbName
+        username: user
+        password: pwd

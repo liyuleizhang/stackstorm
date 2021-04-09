@@ -1,0 +1,72 @@
+# 湖北项目，公司内部CDH认证测试环境
+# ！需要在部署机设置所有节点host
+# ！所有节点hostanme不应该包含“.”，见： https://tools.ietf.org/html/rfc952
+registry ansible_host=172.16.60.24   ansible_port=22     ansible_user=root   ansible_password=chinacloud
+
+# cdh节点列表
+cdh-41   ansible_host=172.16.2.41   ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh-42   ansible_host=172.16.2.42   ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh-43   ansible_host=172.16.2.43   ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh-44   ansible_host=172.16.2.44   ansible_port=22     ansible_user=root   ansible_password=hadoop
+cdh-45   ansible_host=172.16.2.45   ansible_port=22     ansible_user=root   ansible_password=hadoop
+
+########################################################################################################
+# Common Groups
+########################################################################################################
+
+[registry_server]
+registry chrony_role=server
+
+[chrony_servers:children]
+registry_server
+scm_server
+db_server
+krb5_server
+gateway_servers
+edge_servers
+master_servers
+worker_servers
+
+########################################################################################################
+# CDH Groups
+########################################################################################################
+
+[scm_server]
+cdh-41
+
+[db_server]
+cdh-41
+
+[krb5_server]
+cdh-41
+
+[utility_servers:children]
+scm_server
+db_server
+krb5_server
+
+[gateway_servers]
+cdh-41 host_template=HostTemplate-Gateway
+
+[edge_servers]
+cdh-41 host_template=HostTemplate-Edge role_ref_names=HDFS-HTTPFS-1
+
+[master_servers]
+cdh-41 host_template=HostTemplate-Master1
+# <host> host_template=HostTemplate-Master2
+# <host> host_template=HostTemplate-Master3
+
+[worker_servers]
+cdh-42
+cdh-43
+cdh-44
+cdh-45
+
+[worker_servers:vars]
+host_template=HostTemplate-Workers
+
+[cdh_servers:children]
+utility_servers
+gateway_servers
+master_servers
+worker_servers

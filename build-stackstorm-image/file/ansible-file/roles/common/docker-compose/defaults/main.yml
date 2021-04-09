@@ -1,0 +1,1 @@
+docker_compose_download_url: http://{{ nexus_addr }}:{{ nexus_port }}/repository/{{ nexus_miscs_repository }}/docker/docker-compose

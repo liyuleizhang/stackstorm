@@ -1,0 +1,8 @@
+---
+
+- name: Install tensorflow
+  hosts: cdh_servers
+  roles:
+    - ml/tensorflow
+  tags:
+    - tensorflow

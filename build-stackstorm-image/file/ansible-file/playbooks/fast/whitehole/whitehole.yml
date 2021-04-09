@@ -1,0 +1,5 @@
+---
+
+- hosts: wh_servers
+  roles:
+    - fast/whitehole/whitehole

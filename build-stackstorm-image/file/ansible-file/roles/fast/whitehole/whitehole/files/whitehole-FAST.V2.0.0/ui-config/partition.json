@@ -1,0 +1,50 @@
+{   
+    "isVisual":true,
+    "node":[{
+                "zoneName":"banghui_zone",
+                "isOrigin":true,
+                "position":1
+            },
+	    {
+                "zoneName":"ZZY的分区",
+                "isOrigin":false,
+                "position":2
+            },
+	 {
+                "zoneName":"ppt演讲",
+                "isOrigin":false,
+                "position":3
+            },
+ 	   {
+                "zoneName":"验证分区",
+                "isOrigin":false,
+                "position":5
+            } ],
+    "link":[
+{
+                "start":"banghui_zone",
+                "end":"验证分区",
+                "startPosition":"1",
+                "endPosition":"5"
+            },
+          {
+                "start":"验证分区",
+                "end":"ZZY的分区",
+                "startPosition":"5",
+                "endPosition":"2"
+            },
+{           
+                "start":"banghui_zone",
+                "end":"ppt演讲",
+                "startPosition":"1",
+                "endPosition":"3"
+            },
+{           
+                "start":"ZZY的分区",
+                "end":"ppt演讲",
+                "startPosition":"2",
+                "endPosition":"3"
+            }
+
+            ]
+}

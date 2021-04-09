@@ -1,0 +1,154 @@
+version: "2.1"
+services:
+  mysql-router:
+    image: {{ docker_registry }}/library/mysql-router:8.0.19
+    container_name: metagrid-mysql-router
+    restart: always
+    env_file:
+      - ./mysql-router.env
+    ports:
+      - 6452:6446
+    volumes:
+      - /etc/localtime:/etc/localtime
+
+  hubble-ui:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/hubble-ui:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-ui
+    restart: always
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost/hubble-ui/webb/dashboard || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./data/metagrid/download:/opt/download
+      - ./user-keycloak.json:/opt/server/hubble-ui/keycloak.json
+      - ./data/hubble-ui/download/rule:/opt/server/hubble-ui/download/rule
+      - ./data/hubble-ui/default.conf:/etc/nginx/conf.d/default.conf
+      - ./data/hubble-ui/hubble-ui.conf:/etc/nginx/conf.d/locations/hubble-ui.conf
+    env_file:
+      -  global.env
+    environment:
+      - keycloak_port=19000
+      - keycloak_realm=fast
+      - ssl_required=external
+      - keycloak_resource=user-client
+      - keycloak_secret=b1f34b10-dea8-42f0-a5a0-b46a708f75d9
+      - one_route_port=8080
+
+  metagrid-api:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/metagrid-api:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-metagrid-api
+    restart: always
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:16009/hubble/metagrid/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    depends_on:
+      mysql-router:
+        condition: service_started
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./data/metagrid/download:/opt/download
+      - ./data/metagrid/conf/rs/kettle_repo_cfg:/opt/server/metagrid/metagrid-api/conf/rs/kettle_repo_cfg
+      - /etc/hosts:/etc/hosts
+      - ./data/java.security:/usr/java/jdk1.8.0_101/jre/lib/security/java.security
+    env_file:
+      -  global.env
+    environment:
+      - port=16009
+      - application_name=hubble-mg-api
+      - db_name=metagrid
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - kettle_db_name=orchestra
+      - kettle_db_user=root
+      - kettle_db_pwd=chinacloudroot
+      - check_list=dataquality,datasync,blackhole,directory
+      - keycloak_port=80
+      - super_tenant=512032de-e220-45ba-bd23-1f15cd3c0f88
+      - neo_db_port=7474
+      - neo_db_user=neo4j
+      - neo_db_pwd=neo4j
+      - upload_path=/tmp/
+      - res_max=20000
+      - fields_max=20000
+      - dirDepth=5
+      - hubble_file_broker_ip={ONEX_IP}
+      - front_processor=false
+      - hubble_broker_parent_port=80
+
+  dataquality-runner:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/dataquality-runner:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-dataquality-runner
+    restart: always
+    network_mode: "host"
+    depends_on:
+      metagrid-api:
+        condition: service_healthy
+      mysql-router:
+        condition: service_started
+    healthcheck:
+      test: curl -f http://localhost:16789/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /etc/hive/conf:/opt/server/metagrid/dataquality-runner/spark/hive_conf
+      - /etc/localtime:/etc/localtime
+      - ./data/dataquality/tmp:/tmp
+      - ./data/dataquality/jars:/user/chinacloud/dataquality/
+      - ./data/dataquality/logs:/opt/server/metagrid/dataquality-runner/spark/logs
+      - ./data/java.security:/opt/jdk/jre/lib/security/java.security
+      - ./data/dataquality/dq_runner_application.properties:/opt/server/metagrid/dataquality-runner/conf/rs/application.properties
+    env_file:
+      - global.env
+    environment:
+      - port=16789
+      - application_name=hubble-dq-runner
+      - db_name=metagrid
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - spark_master=yarn
+      - spark_local_dir_clean_schedule=0 0 2 * * ?
+      - spark_local_dir_clean_day=2
+      - wait_thread_interval=10
+      - wait_queue_msg_interval=60
+      - kill_job_interval=1
+      - thread_num=5
+      - HADOOP_CONF_DIR=/opt/server/metagrid/dataquality-runner/spark/hive_conf
+
+      
+  hubble-statistics:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/statistics:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-statistics
+    restart: always
+    mem_limit: 1024m
+    mem_reservation: 400m
+    ports:
+      - 16666:16666
+    network_mode: "host"
+    depends_on:
+      mysql-router:
+        condition: service_started
+    healthcheck:
+      test: curl -f http://localhost:16666/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./data/statistics/bootstrap.yml:/opt/server/statistics/conf/rs/bootstrap.yml
+    env_file:
+      -  global.env
+    environment:
+      - port=16666
+      - application_name=hubble-statistics
+      - db_name=fast_statistics
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - hubble_db_name=metagrid
+      - hubble_db_user=root
+      - hubble_db_pwd=chinacloudroot
+      - flyway_enable=false

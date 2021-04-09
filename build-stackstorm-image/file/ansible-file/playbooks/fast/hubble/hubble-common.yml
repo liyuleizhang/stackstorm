@@ -1,0 +1,5 @@
+---
+
+- hosts: hb_standalone,hb_nifi,hb_metagrid
+  roles:
+    - fast/hubble/hubble-common

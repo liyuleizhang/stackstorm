@@ -1,0 +1,81 @@
+---
+
+- name: create hubble-stargatedirectory
+  file: path=/opt/chinacloud/hubble-stargate state=directory mode=0755
+
+- name:  stop hubble-stargate
+  shell: cd /opt/chinacloud/hubble-stargate && docker-compose -f ./docker-compose.yml down
+  ignore_errors: yes
+
+- name: backup old hubble-stargate version
+  shell: tar -cf /opt/chinacloud/hubble-stargate-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/hubble-stargate && rm -rf  /opt/chinacloud/hubble-stargate/*
+
+- name: copy hubble-stargatefile to /opt/chinacloud
+  copy: src=./ dest=/opt/chinacloud/hubble-stargate/  mode=0755
+
+# 生成global.env
+- name: generate global.env
+  template:
+    src: global.env.j2
+    dest: /opt/chinacloud/hubble-stargate/global.env
+
+# 生成docker-compose.yml
+- name: generate docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/chinacloud/hubble-stargate/docker-compose.yml
+
+# 生成mysql-router.env
+- name: generate mysql-router.env
+  template:
+    src: mysql-router.env.j2
+    dest: /opt/chinacloud/hubble-stargate/mysql-router.env
+  when: ONEX_VIP is defined and ONEX_VIP != ''
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh   mode=0755
+
+- name: set variables
+  set_fact:
+    ONEX_IP: "{% if ONEX_VIP is defined and ONEX_VIP != '' %} {{ ONEX_VIP }} {% else %} {{ hostvars[groups['onex_servers'][0]]['ansible_host'] }} {% endif %}"
+    MYSQL_IP: "{% if db_ip %}{{ db_ip }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}{{ ansible_default_ipv4.address }}{% else %}{{ hostvars[groups['mysql'][0]]['ansible_host'] }}{% endif %}"
+    MYSQL_PASSWORD: "{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}"
+    MYSQL_PORT: "{% if db_port %}{{ db_port }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}6452{% else %}3306{% endif %}"
+    RABBITMQ_ADDRESS: "{% for host in groups['rabbitmq_servers'] -%} {{ hostvars[host]['ansible_host'] }}:{%- if rabbitmq_port -%}{{ rabbitmq_port }}{%- else -%}5672{%- endif -%}{%- if loop.nextitem is defined -%},{%- endif -%} {%- endfor %}"
+    ZOOKEEPER_ADDRESS: "{% for host in groups['zookeeper_servers'] -%} {{ hostvars[host]['ansible_host'] }}:{%- if zookeeper_port -%}{{ zookeeper_port }}{%- else -%}2181{%- endif -%}{%- if loop.nextitem is defined -%},{%- endif -%} {%- endfor %}"
+
+- name: replace db ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-stargate/  {MYSQL_DESTINATION_IP}  {{ MYSQL_IP }}
+
+# application.yml里用到了数据库端口
+- name: replace db port
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-stargate/  {MYSQL_DESTINATION_PORT}  {{ MYSQL_PORT }}
+
+- name: replace fast-onex ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-stargate/  {ONEX_IP}  {{ ONEX_IP }}
+
+- name: replace zookeerper address
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-stargate/  {ZOOKEEPER_ADDRESS}  {{ ZOOKEEPER_ADDRESS }}
+
+- name: replace hubble_nifi ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-stargate/  {HUBBLE_NIFI_IP}  {{ hostvars[groups['hb_nifi'][0]]['ansible_host'] }}
+
+- name: replace hubble-standalone ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-stargate/  {HUBBLE_STANDALONE_IP}  {{ hostvars[groups['hb_standalone'][0]]['ansible_host'] }}
+
+- name: replace yarn rm  ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-stargate/  {YARN_RM_IP}   {{ yarn_rm_ip }}
+  ignore_errors: yes
+
+- name:  pull hubble-stargate images
+  shell: cd /opt/chinacloud/hubble-stargate && docker-compose  -f ./docker-compose.yml pull
+
+- name:  start hubble-stargate
+  shell: cd /opt/chinacloud/hubble-stargate && docker-compose -f ./docker-compose.yml up -d
+
+- name: Wait stargate come alive
+  action: shell docker-compose -f /opt/chinacloud/hubble-stargate/docker-compose.yml ps | grep "(healthy)" | wc -l
+  register: result
+  until: result.stdout.find("3") != -1
+  retries: 20
+  delay: 10

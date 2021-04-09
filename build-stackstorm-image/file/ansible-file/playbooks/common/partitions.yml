@@ -1,0 +1,8 @@
+---
+
+# TODO: partitions之前检查挂载点是否有文件
+- name: Create partitions
+  hosts: cdh_servers,gp_servers
+  roles:
+    - common/partitions
+  tags: partitions

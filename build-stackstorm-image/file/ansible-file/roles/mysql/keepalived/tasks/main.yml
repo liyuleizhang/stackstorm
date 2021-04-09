@@ -1,0 +1,25 @@
+---
+
+- name: install ipvsadm and keepalived
+  yum:
+    name: keepalived
+    state: present
+    update_cache: yes
+    use_backend: yum
+
+- name: add keepalived configure
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: add mysql check script
+  template:
+    src: mysql_check.sh.j2
+    dest: /opt/chinacloud/mysql_mgr/mysql_check.sh
+    mode: '0755'
+
+- name: start keepalived server
+  service:
+    name: keepalived
+    state: restarted
+    enabled: yes

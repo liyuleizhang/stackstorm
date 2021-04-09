@@ -1,0 +1,7 @@
+---
+
+- name: Erase Mgr servers
+  hosts: mgr_servers
+  roles:
+    - mysql/mgr_erase
+  tags: mgr_erase

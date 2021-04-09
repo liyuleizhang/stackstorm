@@ -1,0 +1,72 @@
+version: "2.1"
+services:
+  blackhole:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/blackhole:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-blackhole
+    restart: always
+    mem_limit: 2048m
+    mem_reservation: 400m
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:16015/blackhole/api/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /etc/hosts:/etc/hosts
+    env_file:
+      -  global.env
+    environment:
+      - port=16015
+      - application_name=hubble-blackhole
+      - db_name=blackhole
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - hubble_nifi_port=16083
+      - super_tenant=512032de-e220-45ba-bd23-1f15cd3c0f88
+
+  orcadmin:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/orcadmin:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-orcadmin
+    restart: always
+    mem_limit: 2048m
+    mem_reservation: 400m
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:16005/orcadmin/api/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+    env_file:
+      -  global.env
+    environment:
+      - port=16005
+      - application_name=hubble-orcadmin
+      - db_name=orchestra
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - super_tenant=512032de-e220-45ba-bd23-1f15cd3c0f88
+
+
+  one-log:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/one-log:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-one-log
+    restart: always
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:7086/one-log/api/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+    env_file:
+      -  global.env
+    environment:
+      - port=7086
+      - application_name=hubble-onelog
+      - db_name=one_log
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - super_tenant=512032de-e220-45ba-bd23-1f15cd3c0f88
+

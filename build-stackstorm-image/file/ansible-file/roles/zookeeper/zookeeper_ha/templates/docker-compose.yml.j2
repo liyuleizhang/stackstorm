@@ -1,0 +1,17 @@
+version: '2.1'
+services:
+  rabbitmq:
+    network_mode: "host"
+    image: {{ docker_registry }}/library/zookeeper:{{ zookeeper_tag }}
+    container_name: zoo
+    restart: always
+    healthcheck:
+      test: zkServer.sh status
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./data:/data
+      - ./datalog:/datalog
+      - ./conf:/conf
+      - /etc/localtime:/etc/localtime

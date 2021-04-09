@@ -1,0 +1,50 @@
+#fast group environment config
+fast:
+#onex group environment config
+onex:
+  datasource:
+    username: root
+    passwd: chinacloudroot
+  keycloak:
+    authUrl:
+      backend: http://{ONEX_IP}/auth
+      frontend: http://{ONEX_IP}/auth
+    userClient:
+      realm: fast
+      clientId: user-client
+      clientSecret: b1f34b10-dea8-42f0-a5a0-b46a708f75d9
+      sslRequired: external
+      resource: user-client
+    adminClient:
+      realm: fast
+      clientId: admin-client
+      clientSecret: 3b8ac077-e9fc-4f59-a984-67a9526961ba
+      sslRequired: external
+      resource: admin-client
+  route:
+    registry-url: {ONEX_IP}:8084
+    #one-route 真实部署ip+port
+    real-registry-url: {ONEX_IP}:8084
+    #是否校验用户属于管理员还是普通用户(true:需校验 | false:不校验)
+    isValidateUserAndClient: true
+
+spring:
+  cloud:
+    cluster:
+      zookeeper:
+        connect: {ZOOKEEPER_ADDRESS}
+
+#common group environment config
+common:
+  rabbitmq:
+    addresses: {RABBITMQ_ADDRESS}
+    username: fast
+    password: fast
+    virtual-host: /
+  mysql:
+    # 使用mysql-router后，所有数据库连接到本机的mysql-router
+    host: {MYSQL_DESTINATION_IP}
+    port: {MYSQL_DESTINATION_PORT}
+  zookeeper:
+    #registry-url: zookeeper://zookeeper-svc.common:2181
+    registry-url: zookeeper://${spring.cloud.cluster.zookeeper.connect}

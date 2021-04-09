@@ -1,0 +1,139 @@
+version: "2.1"
+services:
+  broker-api:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/broker-api:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-broker-api
+    restart: always
+    mem_limit: 2048m
+    mem_reservation: 400m
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:16211/swagger-ui.html || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+    env_file:
+      -  global.env
+    environment:
+      - port=16211
+      - application_name=hubble-broker-api
+      - db_name=broker_dynamic_api
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - metagrid_version=2.0
+      - tokenFilter_enable=true
+      - ipFilter_enable=true
+      - rateFilter_enable=true
+
+  broker-dataset-dynamic:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/broker-dataset-dynamic:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-broker-dataset
+    restart: always
+    mem_limit: 2048m
+    mem_reservation: 400m
+    network_mode: "host"
+    volumes:
+      - /etc/localtime:/etc/localtime
+    healthcheck:
+      test: curl -f http://localhost:9991/broker/swagger-ui.html || exit 1
+      interval: 1m30s
+      timeout: 10s
+    env_file:
+      - global.env
+    environment:
+      - port=9991
+      - application_name=hubble-broker-dataset-dynamic
+      - db_name=broker_dataset_dynamic
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - wh_db_ip={MYSQL_DESTINATION_IP}
+      - wh_db_port=3306
+      - wh_db_name=fast_wh
+      - wh_db_user=wh
+      - wh_db_pwd=123456
+      - hdfs_user=hdfs
+      - preview_number=20
+
+  broker-parents:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/broker-parents:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-broker-parents
+    restart: always
+    mem_limit: 1024m
+    mem_reservation: 400m
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:9996/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - global.env
+    environment:
+      - port=9996
+      - application_name=hubble-broker-parents
+      - db_name=broker_parent
+      - db_user=root
+      - db_pwd=chinacloudroot
+
+  tokenserver:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/tokenserver:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-tokenserver
+    restart: always
+    mem_limit: 2048m
+    mem_reservation: 400m
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:16112/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - global.env
+    environment:
+      - application_name=hubble-token-server
+      - db_name=token_server
+      - db_user=root
+      - db_pwd=chinacloudroot
+      - token_key=HubbleTokenServer
+
+  broker-sandbox:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/broker-sandbox:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-broker-sandbox
+    restart: always
+    mem_limit: 2048m
+    mem_reservation: 400m
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:16212/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./data/sandboxs.json.j2:/opt/server/metagrid/broker-sandbox/conf/rs/static/sandboxs.json.j2
+    env_file:
+      - global.env
+    environment:
+      - port=16212
+      - application_name=hubble-broker-sandbox
+
+  broker-file:
+    image: {{ docker_registry }}/{{ HUBBLE_IMAGE_GROUP }}/file-service-broker:{{ HUBBLE_IMAGE_VERSION }}
+    container_name: hubble-broker-file
+    restart: always
+    mem_limit: 2048m
+    mem_reservation: 400m
+    ports:
+      - 16213:16213
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:16213/swagger-ui.html || exit 1
+      interval: 1m30s
+      timeout: 10s
+    env_file:
+      - global.env
+    environment:
+      - db_user=root
+      - db_pwd=chinacloudroot

@@ -1,0 +1,1 @@
+../../../../mgr/files/mysql_mgr/mysql-init-sql/hubble-init.sql

@@ -1,0 +1,5 @@
+---
+
+- hosts: hb_broker
+  roles:
+    - fast/hubble/hubble-broker

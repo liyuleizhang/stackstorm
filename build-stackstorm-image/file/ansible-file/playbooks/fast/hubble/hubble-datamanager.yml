@@ -1,0 +1,6 @@
+---
+
+- include: hubble-metagrid.yml
+- include: hubble-stargate.yml
+- include: hubble-kettle.yml
+- include: hubble-broker.yml

@@ -1,0 +1,58 @@
+---
+
+# TODO: greenplum role拆分成三个role：common, gpmaster, gpsegment
+# TODO: Validating Your Systems
+# https://gpdb.docs.pivotal.io/6-0/install_guide/validate.html#topic1
+
+- name: Create the data directory location on the master
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ greenplum_admin_user }}"
+    group: "{{ greenplum_admin_user }}"
+    mode: 0755
+    recurse: yes
+  with_items:
+  - "{{ master_data_directory }}"
+  - "{{ master_conf_directory }}"
+
+- name: gather facts from gpsegment servers
+  setup:
+  delegate_to: "{{item}}"
+  delegate_facts: True
+  loop: "{{groups['gpsegment_servers']}}"
+
+- name: Create a initialization host file
+  template:
+    src: hostfile_gpinitsystem.j2
+    dest: /etc/greenplum/hostfile_gpinitsystem
+
+- name: Create a gpinitsystem_config file
+  template:
+    src: gpinitsystem_config.j2
+    dest: /etc/greenplum/gpinitsystem_config
+
+- name: Export MACHINE_LIST_FILE variable in gpadmin user's .bashrc
+  lineinfile:
+    path: "/home/{{ greenplum_admin_user }}/.bashrc"
+    line: "export MACHINE_LIST_FILE=/etc/greenplum/hostfile_gpinitsystem"
+
+- name: Export MASTER_DATA_DIRECTORY variable in gpadmin user's .bashrc
+  lineinfile:
+    path: "/home/{{ greenplum_admin_user }}/.bashrc"
+    line: "export MASTER_DATA_DIRECTORY=/data/gpmaster/gpseg-1"
+
+# TODO: 脚本初始化有部分问题，暂时修改为人工执行初始化脚本
+# - name: Running the Initialization Utility
+#   shell: |
+#     su -c ". /usr/local/greenplum-db/greenplum_path.sh && /usr/local/greenplum-db/bin/gpinitsystem -D -c /etc/greenplum/gpinitsystem_config -a -h /etc/greenplum/hostfile_gpinitsystem" - {{ greenplum_admin_user }}
+
+- name: Config done! show help messages
+  debug:
+    msg:
+    - "Config greenplum done!"
+    - "Please run next commands on mdw:"
+    - "su - gpadmin"
+    - "export MACHINE_LIST_FILE=/etc/greenplum/hostfile_gpinitsystem"
+    - ". /usr/local/greenplum-db/greenplum_path.sh && /usr/local/greenplum-db/bin/gpinitsystem -D -c /etc/greenplum/gpinitsystem_config -a -h /etc/greenplum/hostfile_gpinitsystem"
+

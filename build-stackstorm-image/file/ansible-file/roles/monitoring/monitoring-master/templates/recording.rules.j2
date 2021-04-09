@@ -1,0 +1,178 @@
+{% raw %}
+groups:
+  # general rules
+  - name: general.rules
+    rules:
+    - alert: TargetDown
+      annotations:
+        message: '{{ $value }}%的{{ $labels.job }}任务采集目标宕机。'
+      expr: 100 * (count(up == 0) BY (job) / count(up) BY (job)) > 10
+      for: 10m
+      labels:
+        severity: warning
+    - alert: DeadMansSwitch
+      annotations:
+        message: 这是一个存活消息，证明监控告警系统能够正常发送告警。 默认配置每12小时发送一次。
+      expr: vector(1)
+      labels:
+        severity: none
+  # node records
+  - name: node-records.rules
+    rules:
+    ##################################
+    # CPU
+    ##################################
+    # 每节点CPU数量
+    - expr: |
+        count by (instance) (sum  by (instance, cpu) (node_cpu_seconds_total{job="node-exporter"}))
+      record: 'node:node_num_cpu'
+    # 所有节点CPU数量总和
+    - expr: |
+        sum(count by (instance) (sum  by (instance, cpu) (node_cpu_seconds_total{job="node-exporter"})))
+      record: ':node_num_cpu:'
+    # 每节点CPU Load1
+    - expr: |
+        sum by (instance) (
+          node_load1{job="node-exporter"}
+        )
+        /
+        node:node_num_cpu
+      record: 'node:node_cpu_saturation_load1:'
+    # 每节点平均1分钟CPU使用率
+    - expr: |
+        (1 - avg by (instance) (rate(node_cpu_seconds_total{job="node-exporter", mode="idle"}[1m])))
+      record: 'node:node_cpu_utilisation:avg1m'
+    ##################################
+    # MEM
+    ##################################
+    # 所有节点内存总量
+    - expr: |
+        sum(node_memory_MemTotal_bytes{job=~"node-exporter"})
+      record: ':node_memtotal:'
+    # 每节点内存使用率
+    - expr: |
+        (
+          node_memory_MemTotal_bytes{job=~"node-exporter"} - node_memory_MemFree_bytes{job=~"node-exporter"}
+        )
+        /
+        node_memory_MemTotal_bytes{job=~"node-exporter"}
+      record: 'node:node_memory_utilisation:'
+    # 每节点内存已用内存
+    - expr: |
+        node_memory_MemTotal_bytes{job=~"node-exporter"} - node_memory_MemFree_bytes{job=~"node-exporter"}
+      record: 'node:node_memory_used:'
+    # 每节点可用内存
+    - expr: |
+        node_memory_MemFree_bytes{job=~"node-exporter"}
+        + node_memory_Cached_bytes{job="node-exporter"}
+        + node_memory_Buffers_bytes{job="node-exporter"}
+      record: 'node:node_memory_bytes_available:'
+    # 每节点内存吞吐量
+    - expr: |
+        1e3 * sum by (instance) (
+          (rate(node_vmstat_pgpgin{job="node-exporter"}[1m])
+          + rate(node_vmstat_pgpgout{job="node-exporter"}[1m]))
+        )
+      record: ':node_memory_swap_io_bytes:sum_rate'
+    ##################################
+    # Disks
+    ##################################
+    # 所有节点磁盘总量
+    - expr: |
+        sum(node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"})
+      record: ':node_filesysetm_size:'
+    # 每节点文件系统使用率
+    - expr: |
+        (
+          node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"}
+          - node_filesystem_avail_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"}
+        )
+        /
+        node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"}
+      record: 'node:node_filesystem_usage:'
+    # 每节点文件系统可用率
+    - expr: |
+        max by (instance, device) (node_filesystem_avail_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"} / node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"})
+      record: 'node:node_filesystem_avail:'
+    # 每节点磁盘IO饱和度
+    - expr: |
+        avg by (instance) (
+          irate(node_disk_io_time_weighted_seconds_total{job="node-exporter", device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+"}[1m]) / 1e3
+        )
+      record: ':node_disk_saturation:avg_irate'
+    # 每节点磁盘IO使用率
+    - expr: |
+        avg by (instance) (
+          irate(node_disk_io_time_seconds_total{job="node-exporter", device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+"}[1m])
+        )
+      record: ':node_disk_utilisation:avg_irate'
+    ##################################
+    # Others
+    ##################################
+    # 每环境告警数量
+    - expr: |
+        count by (environment) (ALERTS{alertstate="firing", severity!="none"})
+      record: 'enviroment_alert_num'
+  # node alter rules
+  - name: node-alters.rules
+    rules:
+    # CPU性能指标告警
+    - alert: NodeHighCPULoad
+      annotations:
+        message: 节点{{ $labels.instance }}CPU每分钟平均负载超过1.7，已持续超过10分钟。
+      expr: |
+        node:node_cpu_saturation_load1:  > 1.7
+      for: 10m
+      labels:
+        severity: warning
+    - alert: NodeHighCPULoad
+      annotations:
+        message: 节点{{ $labels.instance }}CPU每分钟平均负载超过4，严重过载，已持续超过10分钟，请立即处理。
+      expr: |
+        node:node_cpu_saturation_load1:  > 4
+      for: 10m
+      labels:
+        severity: critical
+    - alert: NodeHighCPUUtilisation
+      annotations:
+        message: 节点{{ $labels.instance }}CPU使用率超过90%，已持续超过10分钟。
+      expr: |
+        node:node_cpu_utilisation:avg1m  > 0.9
+      for: 10m
+      labels:
+        severity: warning
+    # 内存性能指标告警
+    - alert: NodeHighMEMUtilization
+      annotations:
+        message: 节点 {{ $labels.node }} 内存使用率超过90%。
+      expr: |
+        (node:node_memory_utilisation: * 100 > 90)
+      for: 5m
+      labels:
+        severity: warning
+    # 磁盘性能指标告警
+    - alert: NodeDiskFull
+      annotations:
+        message: 节点 {{ $labels.instance }} 上的设备 {{ $labels.device }} 可用空间不足10%。
+      expr: |
+        node:node_filesystem_usage: > 0.9
+      for: 30m
+      labels:
+        severity: warning
+    - alert: NodeDiskRunningFull
+      annotations:
+        message: 节点 {{ $labels.instance }} 上的设备 {{ $labels.device }} 将在未来24小时内使用满。
+      expr: |
+        (node:node_filesystem_usage: > 0.85) and (predict_linear(node:node_filesystem_avail:[6h], 3600 * 24) < 0)
+      for: 30m
+      labels:
+        severity: warning
+    - alert: NodeDiskRunningFull
+      annotations:
+        message: 节点 {{ $labels.instance }} 上的设备 {{ $labels.device }} 将在未来2小时内使用满。
+      expr: |
+        (node:node_filesystem_usage: > 0.85) and (predict_linear(node:node_filesystem_avail:[30m], 3600 * 2) < 0)
+      for: 10m
+      labels:
+        severity: critical
+{% endraw %}

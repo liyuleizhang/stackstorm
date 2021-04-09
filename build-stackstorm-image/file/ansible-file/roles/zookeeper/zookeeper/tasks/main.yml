@@ -1,0 +1,23 @@
+---
+
+- name: create /fast zookeeper directory
+  file: path=/opt/chinacloud/zookeeper state=directory mode=0755
+
+- name: copy fast zookeeper file to /opt
+  copy: src=zookeeper/ dest=/opt/chinacloud/zookeeper/  mode=0755
+
+- name:  stop zookeeper
+  shell: cd /opt/chinacloud/zookeeper   && docker-compose -f ./docker-compose.yml  down
+
+- name: add zookeeper docker-compose.yml
+  template: src=docker-compose.yml.j2 dest=/opt/chinacloud/zookeeper/docker-compose.yml
+
+- name:  start zookeeper
+  shell: cd /opt/chinacloud/zookeeper && docker-compose -f ./docker-compose.yml  up  -d
+
+- name: waiting for zookeeper come alive
+  action: shell docker-compose -f /opt/chinacloud/zookeeper/docker-compose.yml ps| grep zoo
+  register: result
+  until: result.stdout.find("(healthy)") != -1
+  retries: 20
+  delay: 20

@@ -1,0 +1,74 @@
+---
+
+- name: create hubble-broker directory
+  file: path=/opt/chinacloud/hubble-broker state=directory mode=0755
+
+- name:  stop hubble-broker
+  shell: cd /opt/chinacloud/hubble-broker && docker-compose -f ./docker-compose.yml down
+  ignore_errors: yes
+
+- name: backup old hubble-broker version
+  shell: tar -cf /opt/chinacloud/hubble-broker-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/hubble-broker && rm -rf  /opt/chinacloud/hubble-broker/*
+
+- name: copy hubble-broker file to /opt/chinacloud
+  copy: src=./ dest=/opt/chinacloud/hubble-broker/  mode=0755
+
+# 生成global.env
+- name: generate global.env
+  template:
+    src: global.env.j2
+    dest: /opt/chinacloud/hubble-broker/global.env
+
+# 生成docker-compose.yml
+- name: generate docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/chinacloud/hubble-broker/docker-compose.yml
+
+# 生成mysql-router.env
+- name: generate mysql-router.env
+  template:
+    src: mysql-router.env.j2
+    dest: /opt/chinacloud/hubble-broker/mysql-router.env
+  when: ONEX_VIP is defined and ONEX_VIP != ''
+
+- name: copy shell to /tmp
+  copy: src=init-ip.sh dest=/tmp/init-ip.sh   mode=0755
+
+- name: set variables
+  set_fact:
+    ONEX_IP: "{% if ONEX_VIP is defined and ONEX_VIP != '' %}{{ ONEX_VIP }}{% else %}{{ hostvars[groups['onex_servers'][0]]['ansible_host'] }} {% endif %}"
+    MYSQL_IP: "{% if db_ip %}{{ db_ip }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}{{ ansible_default_ipv4.address }}{% else %}{{ hostvars[groups['mysql'][0]]['ansible_host'] }}{% endif %}"
+    MYSQL_PASSWORD: "{% if db_passwd %}{{ db_passwd }}{% else %}chinacloudroot{% endif %}"
+    MYSQL_PORT: "{% if db_port %}{{ db_port }}{% elif ONEX_VIP is defined and ONEX_VIP != '' %}6452{% else %}3306{% endif %}"
+    ZOOKEEPER_ADDRESS: "{% for host in groups['zookeeper_servers'] -%} {{ hostvars[host]['ansible_host'] }}:{%- if zookeeper_port -%}{{ zookeeper_port }}{%- else -%}2181{%- endif -%}{%- if loop.nextitem is defined -%},{%- endif -%} {%- endfor %}"
+
+
+- name: replace db ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-broker/  {MYSQL_DESTINATION_IP}  {{ MYSQL_IP }}
+
+# application.yml里用到了数据库端口
+- name: replace db port
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-broker/  {MYSQL_DESTINATION_PORT}  {{ MYSQL_PORT }}
+
+- name: replace fast-onex ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-broker/  {ONEX_IP}  {{ ONEX_IP }}
+
+- name: replace hubble_broker ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-broker/  {HUBBLE_BROKER_IP}  {{ hostvars[groups['hb_broker'][0]]['ansible_host'] }}
+
+- name: replace hdfs active namespaces ip
+  shell: /tmp/init-ip.sh  /opt/chinacloud/hubble-broker/  {HDFS_NAMENODE_IP}   {{ hdfs_namenode_ip }}
+
+- name:  pull hubble-broker images
+  shell: cd /opt/chinacloud/hubble-broker && docker-compose  -f ./docker-compose.yml pull
+
+- name:  start hubble-broker
+  shell: cd /opt/chinacloud/hubble-broker  && docker-compose -f ./docker-compose.yml  up -d
+
+- name: Wait hubble-broker come alive
+  action: shell docker-compose -f /opt/chinacloud/hubble-broker/docker-compose.yml ps | grep "(healthy)" | wc -l
+  register: result
+  until: result.stdout.find("6") != -1
+  retries: 20
+  delay: 10

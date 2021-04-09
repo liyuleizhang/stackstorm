@@ -1,0 +1,77 @@
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: ${eureka_url:http://172.16.0.6:18087/eureka/}
+
+server:
+  port: ${port:16666}
+  context-path: 
+spring:
+  application:
+    name: ${application_name:hubble-statistics}
+  datasource:
+    max-idle: 8
+    min-idle: 4
+    password: ${db_pwd:root}
+    validationQuery: SELECT 1
+    max-active: 100
+    driverClassName: com.mysql.jdbc.Driver
+    initialize: false
+    initial-size: 10
+    url: jdbc:mysql://${db_ip:172.16.0.6}:${db_port:3306}/${db_name:fast_statistics}?useUnicode=true&characterEncoding=utf-8&useReadAheadInput=false&useUnbufferedInput=false
+    username: ${db_user:root}
+    time-between-eviction-runs-millis: 3600000
+    test-on-borrow: true
+    test-on-return: true      
+  
+  jpa:
+    hibernate:
+      ddl-auto: none
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    show-sql: ${show-sql:false}
+    properties:
+      hibernate:
+        dialect: com.cetc.hubble.statistics.config.HubbleDialect
+        
+  rabbitmq: 
+    addresses : ${rabbitmq_addresses:172.16.0.6:5672}
+    username : fast
+    password : fast
+    virtual-host : /
+    publisher-confirms : true
+    listener: 
+      simple:
+        acknowledge-mode : auto
+        concurrency : 3
+        max-concurrency : 3
+    template:
+      retry:
+        enabled : true
+      mandatory : true
+
+hubble:
+  datasource:
+    max-idle: 8
+    min-idle: 4
+    password: ${hubble_db_pwd:root}
+    validationQuery: SELECT 1
+    max-active: 100
+    driverClassName: com.mysql.jdbc.Driver
+    initialize: false
+    initial-size: 10
+    url: jdbc:mysql://${db_ip:172.16.0.63}:${db_port:3306}/${hubble_db_name:metagrid}?useUnicode=true&characterEncoding=utf-8&useReadAheadInput=false&useUnbufferedInput=false
+    username: ${hubble_db_user:root}
+    time-between-eviction-runs-millis: 3600000
+    test-on-borrow: true
+    test-on-return: true
+
+#flyway
+flyway:
+  out-of-order: true
+  baseline-on-migrate: true
+  validate-on-migrate: false
+  locations: classpath:db/migration
+  check-location: true
+  enabled: ${flyway_enable:false}

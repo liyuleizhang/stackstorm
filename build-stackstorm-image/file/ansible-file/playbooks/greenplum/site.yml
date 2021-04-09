@@ -1,0 +1,35 @@
+---
+
+# Greenplum playbooks
+# 参考文档：https://gpdb.docs.pivotal.io/6-0/install_guide/install_guide.html
+- name: Perf configs
+  hosts: gp_servers
+  roles:
+    - greenplum/perf
+  tags: perf
+
+- name: Install greenplum
+  hosts: gp_servers
+  roles:
+    - greenplum/common
+  tags: common
+
+- name: Configure greenplum user ssh passwordless
+  hosts: gp_servers
+  roles:
+    - common/ssh
+  vars:
+    user: gpadmin # TODO: 使用变量
+  tags: ssh
+
+- name: Configure gpsegment servers
+  hosts: gpsegment_servers
+  roles:
+    - greenplum/gpsegment
+  tags: gpsegment
+
+- name: Configure gpmaster servers
+  hosts: gpmaster_servers
+  roles:
+    - greenplum/gpmaster
+  tags: gpmaster

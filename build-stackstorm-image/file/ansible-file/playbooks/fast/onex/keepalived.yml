@@ -1,0 +1,5 @@
+---
+
+- hosts: onex_servers
+  roles:
+    - fast/onex/keepalived

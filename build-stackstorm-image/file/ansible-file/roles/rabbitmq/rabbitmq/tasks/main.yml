@@ -1,0 +1,39 @@
+---
+
+- name: create /fast rabbitmq directory
+  file: path=/opt/chinacloud/rabbitmq state=directory mode=0755
+
+- name:  stop rabbitmq
+  shell: cd /opt/chinacloud/rabbitmq && docker-compose -f ./docker-compose.yml down
+  ignore_errors: yes
+
+# 如不移除原文件，偶尔出现“Node rabbitmq2@data02 thinks it's clustered with node rabbitmq3@data03, but rabbitmq3@data03 disagrees”类似问题
+- name: backup old rabbitmq version
+  shell: tar -cf /opt/chinacloud/rabbitmq-{{ ansible_date_time.date}}.tar.gz /opt/chinacloud/rabbitmq && rm -rf  /opt/chinacloud/rabbitmq/*
+
+- name: copy rabbitmq install file to /opt
+  copy: src=rabbitmq.env dest=/opt/chinacloud/rabbitmq/  mode=0755
+
+- name: add docker-compose.yml
+  template: src=docker-compose.yml.j2 dest=/opt/chinacloud/rabbitmq/docker-compose.yml
+
+- name:  pull rabbitmq images
+  shell: cd /opt/chinacloud/rabbitmq && docker-compose  -f ./docker-compose.yml pull
+
+- name:  stop rabbitmq
+  shell: cd /opt/chinacloud/rabbitmq && docker-compose -f ./docker-compose.yml down
+
+- name:  start rabbitmq
+  shell: cd /opt/chinacloud/rabbitmq && docker-compose -f ./docker-compose.yml up -d
+
+- action: shell docker-compose -f /opt/chinacloud/rabbitmq/docker-compose.yml ps|grep rabbitmq
+  register: result
+  until: result.stdout.find("(healthy)") != -1
+  retries: 20
+  delay: 20
+
+- action: shell curl -m 3 -s -i http://{{ansible_host}}:15672
+  register: result
+  until: result.stdout.find("HTTP/1.1 200 OK") != -1
+  retries: 30
+  delay: 10

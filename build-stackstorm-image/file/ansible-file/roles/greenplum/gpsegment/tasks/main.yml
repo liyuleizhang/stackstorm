@@ -1,0 +1,11 @@
+---
+
+- name: Create the data directory locations on all segment hosts
+  file:
+    path: "/data/gpdatap{{ item.0 + 1 }}"
+    state: directory
+    owner: "{{ greenplum_admin_user }}"
+    group: "{{ greenplum_admin_user }}"
+    mode: 0755
+    recurse: yes
+  with_indexed_items: "{{ groups['gpsegment_servers'] }}"

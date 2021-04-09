@@ -1,0 +1,167 @@
+version: '2.1'
+services:
+  portal:
+    image: {{ docker_registry }}/library/nginx:1.8.1
+    container_name: portal
+    restart: always
+    network_mode: "host"
+    depends_on:
+      one-ui-all-in-one:
+        condition: service_started
+    volumes:
+      - ./portal.conf:/etc/nginx/conf.d/default.conf:z
+      - /etc/localtime:/etc/localtime
+    healthcheck:
+      test: curl -f http://localhost:80/fast/
+      interval: 1m30s
+      timeout: 30s
+      retries: 3
+
+  keycloak:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/keycloak-ha:3.4.0.Final.FAST.V2.0.0.RELEASE
+    container_name: keycloak
+    restart: always
+    volumes:
+      - ./config/standalone-ha.xml:/opt/jboss/keycloak/standalone/configuration/standalone-ha.xml
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./keycloak.env
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:8080 || exit 1
+      interval: 1m30s
+      timeout: 10s
+
+  one-registry:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/one-registry:${ONE_REGISTRY_TAG}
+    container_name: one-registry
+    restart: always
+    env_file:
+      - ./one-registry.env
+    volumes:
+      - ./logback.xml:/apps/log.xml:z
+      - /etc/localtime:/etc/localtime
+    network_mode: "host"
+    healthcheck:
+      test: curl -f http://localhost:18087/health
+      interval: 1m30s
+      timeout: 10s
+
+  one-config:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/one-config:pro-${ONE_CONFIG_TAG}
+    container_name: one-config
+    restart: always
+    volumes:
+      - ./logback.xml:/apps/log.xml:z
+      - ./config/application-environment.yml:/apps/config/application-environment.yml
+      - ./config/application-environment_mir.yml:/apps/config/application-environment_mir.yml
+      - ./config/application-environment_wh.yml:/apps/config/application-environment_wh.yml
+      - ./config/application-environment_hubble.yml:/apps/config/application-environment_hubble.yml
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./one-config.env
+    network_mode: "host"
+    depends_on:
+      one-registry:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8888/health
+      interval: 1m30s
+      timeout: 10s
+
+  one-route:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/one-route:${ONE_ROUTE_TAG}
+    container_name: one-route
+    restart: always
+    volumes:
+      - ./logback.xml:/apps/log.xml:z
+      - ./fast.config:/apps/one-route.conf:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./one-route.env
+    network_mode: "host"
+    depends_on:
+      one-config:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8084/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+
+  one-logging-api:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/one-logging-api:${ONE_LOGGING_API_TAG}
+    container_name: one-logging-api
+    restart: always
+    volumes:
+      - ./logback.xml:/apps/log.xml:z
+      - ./fast.config:/apps/one-logging-api.conf:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./one-logging-api.env
+    network_mode: "host"
+    depends_on:
+      one-config:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8083/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+
+  one-infrastructure-api:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/one-infrastructure-api:${ONE_INFRASTRUCTURE_TAG}
+    container_name: one-infrastructure-api
+    restart: always
+    volumes:
+      - ./logback.xml:/apps/log.xml:z
+      - ./fast-with-logback.config:/apps/one-infrastructure-api.conf:z
+      - /opt/chinacloud/onex-data/files:/opt/server/one-oss/fileUpload
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./one-infrastructure-api.env
+    network_mode: "host"
+    depends_on:
+      one-config:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8081/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+
+  one-task-scheduler:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/one-task-scheduler:${ONE_TASK_SCHEDULER_TAG}
+    container_name: one-task-scheduler
+    restart: always
+    volumes:
+      - ./logback.xml:/apps/log.xml:z
+      - ./fast.config:/apps/one-task-scheduler.conf:z
+      - /etc/localtime:/etc/localtime
+    env_file:
+      - ./one-task-scheduler.env
+    network_mode: "host"
+    depends_on:
+      one-config:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8082/health || exit 1
+      interval: 1m30s
+      timeout: 10s
+
+  one-ui-all-in-one:
+    image: {{ docker_registry }}/{{ONEX_IMAGE_GROUP}}/one-ui-all-in-one:${ONE_UI_ALL_IN_ONE_TAG}
+    container_name: one-ui-all-in-one
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./one-ui-all-in-one.conf:/etc/nginx/conf.d/one-ui-all-in-one.conf:z
+      - ./user-keycloak.json:/usr/share/nginx/html/one-ui/keycloak.json
+      - ./admin-keycloak.json:/usr/share/nginx/html/one-admin-ui/keycloak.json
+      - ./admin-ui-config.json:/usr/share/nginx/html/one-admin-ui/config/config.json
+      - /etc/localtime:/etc/localtime
+    healthcheck:
+      test: service nginx status || exit 1
+      interval: 1m30s
+      timeout: 30s
+      retries: 3
+
+
+

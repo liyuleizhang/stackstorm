@@ -1,0 +1,15 @@
+---
+
+- name: Deploy MGR Slave
+  hosts: mgr_slave
+  roles:
+    - mysql/mgr
+  tags: mgr_slave
+
+- name: Deploy MGR Master
+  hosts: mgr_primary
+  roles:
+    - mysql/mgr
+  tags: mgr_primary
+
+

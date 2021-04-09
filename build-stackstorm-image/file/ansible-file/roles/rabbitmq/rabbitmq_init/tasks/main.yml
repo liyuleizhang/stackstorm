@@ -1,0 +1,30 @@
+---
+
+- name: check  rabbitmq vhost
+  shell: docker exec  rabbitmq  rabbitmqctl list_vhosts|grep /
+  register: check_rabbitmq_vhost
+  ignore_errors: True
+
+- name: check  rabbitmq user
+  shell: docker exec  rabbitmq  rabbitmqctl list_users
+  register: check_rabbitmq_user
+  ignore_errors: True
+
+- name: set set_policy
+  shell:  docker exec  rabbitmq  rabbitmqctl set_policy ha-all "^" '{"ha-mode":"all","ha-sync-mode":"automatic"}'
+
+- name: add vhost
+  shell: docker exec  rabbitmq rabbitmqctl add_vhost /
+  when: "'/' not in check_rabbitmq_vhost.stdout"
+
+- name: add user fast
+  shell: docker exec  rabbitmq  rabbitmqctl add_user fast fast
+  when: "'fast' not in check_rabbitmq_user.stdout"
+
+- name: set user  tag
+  shell: docker exec  rabbitmq  rabbitmqctl set_user_tags fast administrator
+  when: "'fast' not in check_rabbitmq_user.stdout"
+
+- name: set user  permissions
+  shell: docker exec  rabbitmq  rabbitmqctl set_permissions -p  / fast ".*" ".*" ".*"
+  when: "'fast' not in check_rabbitmq_user.stdout"

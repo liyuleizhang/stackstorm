@@ -1,0 +1,36 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+
+rule_files:
+  - /etc/prometheus/*.rules
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [
+        {% for minion in groups['monitoring-minion'] %}
+          '{{ hostvars[minion]['ansible_default_ipv4']['address'] }}:9110',
+        {% endfor %}
+        ]
+  - job_name: 'cadvisor'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [
+        {% for minion in groups['monitoring-minion'] %}
+          '{{ hostvars[minion]['ansible_default_ipv4']['address'] }}:9111',
+        {% endfor %}
+        ]
+
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "{{ ansible_default_ipv4.address }}:9093"
