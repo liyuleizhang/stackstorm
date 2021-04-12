@@ -1,7 +1,7 @@
 # stackstorm docker-compose部署及镜像制作
 
 ## stackstorm目录
-	本目录为stackstorm3.1版本的docker-compose部署方式的配置文件，安装前应禁用防火墙、安装docker和docker-compose，然后设置conf文件夹及文件权限为可执行,启动所有容器即可，注意：docker-compose.yml文件内所有容器镜像为本人私有仓库地址，若无法下载请自行网络搜索测试。
+本目录为stackstorm3.1版本的docker-compose部署方式的配置文件，安装前应禁用防火墙、安装docker和docker-compose，然后设置conf文件夹及文件权限为可执行,启动所有容器即可，注意：docker-compose.yml文件内所有容器镜像为本人私有仓库地址，若无法下载请自行网络搜索测试。
 ```shell
 chmod -R +x conf/
 docker-compose up -d
