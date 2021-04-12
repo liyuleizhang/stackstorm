@@ -1,0 +1,6 @@
+---
+name: install_docker
+description: 安装docker
+runner_type: orquesta
+entry_point: workflows/install_docker.yaml
+enabled: true

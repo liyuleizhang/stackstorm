@@ -1,0 +1,30 @@
+---
+name: testinfra
+description: 运行testinfra测试用例
+runner_type: python-script
+entry_point: scripts/testinfra_.py
+enabled: true
+parameters:
+  hosts:
+    description: ansible执行目标主机，如：all
+    required: true
+    type: string
+  inventory:
+    description: ansbile inventory文件路径，默认：/etc/ansible/hosts
+    required: true
+    type: string
+    default: '/etc/ansible/hosts'
+  testcases:
+    description: pytest测试用例路径，可以是python文件路径或目录，默认：/src/tests
+    required: true
+    type: string
+    default: '/src/tests'
+  force_ansible:
+    description: 是否强制使用ansible方式连接到目标主机，默认关闭。仅当与目标主机未配置ssh认证时，推荐使用。
+    required: true
+    type: boolean
+    default: false
+  marks:
+    description: pytest marks，一般用来过滤执行测试用例范围。见：https://docs.pytest.org/en/latest/example/markers.html
+    required: false
+    type: string

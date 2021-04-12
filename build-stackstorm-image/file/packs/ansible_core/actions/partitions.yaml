@@ -1,0 +1,22 @@
+---
+name: partitions
+description: 自动多节点磁盘分区，目前仅在单设备中创建单个xfs格式的分区，并挂载到指定挂载点。如：对所有CDH节点/dev/sdb设置分区并挂载至/data，输入参数：hosts=cdh_servers，device=/dev/sdb，mountpoint=/data
+runner_type: orquesta
+entry_point: workflows/partitions.yaml
+enabled: true
+parameters:
+  hosts:
+    description: "节点（Ansible inventory风格），如：all代表所有节点、cdh_servers代表所有CDH节点等"
+    type: string
+    required: true
+    position: 0
+  device:
+    description: "进行分区的设备，如：/dev/sdb"
+    type: string
+    required: true
+    position: 1
+  mountpoint:
+    description: "分区挂载点，如：/data"
+    type: string
+    required: true
+    position: 2

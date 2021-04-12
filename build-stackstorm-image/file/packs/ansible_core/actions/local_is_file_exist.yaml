@@ -1,0 +1,19 @@
+---
+name: local_is_file_exist
+description: 文件是否存在，如果文件不存在则异常退出
+runner_type: local-shell-cmd
+entry_point: ''
+enabled: true
+parameters:
+  filepath:
+    description: 文件绝对路径
+    required: true
+    type: string
+  cmd:
+    description: Arbitrary Linux command to be executed on the local host.
+    required: false
+    type: string
+    default: 'test -e {{ filepath }}'
+  sudo:
+    immutable: true
+

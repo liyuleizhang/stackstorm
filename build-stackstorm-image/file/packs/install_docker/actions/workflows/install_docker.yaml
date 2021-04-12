@@ -1,0 +1,40 @@
+version: 1.0
+description: 安装配置基础环境工作流
+vars:
+- error: ""
+tasks:
+  # 1. 检查原生操作系统
+  check_origin_os:
+    action: ansible_core.testinfra hosts="all" testcases="/src/tests/test_os.py" force_ansible="true" marks="origin_os" timeout=1800
+    next:
+    - when: "{{ succeeded() }}"
+      do:
+      - install_common
+    - when: "{{ failed() }}"
+      do:
+      - fail
+      publish:
+      - error: "检查原生环境操作系统未通过，请查看check_origin_os日志输出确认错误原因。"
+  # 2. 通过ansible脚本安装配置基础环境
+#  install_common:
+#    action: ansible.playbook playbook="/etc/ansible/playbooks/common/common.yml"
+#    next:
+#    - when: "{{ succeeded() }}"
+#      do:
+#      - check_os
+#    - when: "{{ failed() }}"
+#      do:
+#      - fail
+#      publish:
+#      - error: "安装配置基础环境错误，请查看install_common日志输出定位错误原因。"
+  # 3. 检查配置后的操作系统
+#  check_os:
+#    action: astrolabe.check_os
+#    next:
+#    - when: "{{ failed() }}"
+#      do:
+#      - fail
+#      publish:
+#      - error: "检查操作系统状态错误，请查看stderr定位错误原因。"
+#output:
+#  - error: "{{ ctx('error') }}"
