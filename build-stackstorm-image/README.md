@@ -77,5 +77,7 @@ EXPOSE 8001
 
 修改好file文件夹内的三个服务文件后执行如下命令构建镜像,若构建失败，请检查镜像仓库地址、pip源地址
 ```shell
+mkdir conf/configs
+mkdir conf/packs.dev
 docker build -t stackstorm:v1 ./
 ```
