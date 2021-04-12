@@ -16,6 +16,14 @@ chmod -R +x conf/
 docker-compose up -d
 ```	
 
+启动服务
+```shell
+web登录stackstorm:3.1版本容器端口号80，自定义镜像8081
+用户名：admin
+密码：admin
+本地ip地址
+```	
+
 停止容器执行如下命令
 ```shell
 docker-compose down
