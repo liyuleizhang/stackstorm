@@ -18,7 +18,7 @@ docker-compose up -d
 
 web登录
 ```shell
-web登录本地ip地址,stackstorm:3.1版本容器端口号80，自定义镜像8081
+web登录本地ip地址,stackstorm:3.1版本容器端口号80，自定义镜像8001
 用户名：admin
 密码：admin
 ```	
