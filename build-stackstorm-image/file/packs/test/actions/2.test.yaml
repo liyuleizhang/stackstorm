@@ -1,0 +1,6 @@
+---
+name: 2.test
+description: 用ansible在指定宿主机内输入test.txt文件
+runner_type: orquesta
+entry_point: workflows/2.test.yaml
+enabled: true

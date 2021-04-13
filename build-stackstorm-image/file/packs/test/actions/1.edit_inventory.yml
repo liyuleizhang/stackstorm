@@ -1,0 +1,12 @@
+---
+name: 1.edit_inventory
+runner_type: "local-shell-script" #类型，shell脚本
+description: 生成inventory
+enabled: true
+entry_point: shell/1.edit_inventory.sh
+parameters:
+    data1_ip:
+        type: string
+        description: data1节点ip地址例如（192.168.1.2）
+        required: true #此输入框必填提示*
+        position: 1

@@ -1,0 +1,13 @@
+---
+ref: ansible_core
+name: ansible_core
+description: 安装docker-ce
+keywords:
+    - example
+    - test
+version: 0.0.1
+python_versions:
+  - "2"
+  - "3"
+author: 李玉雷
+email: liyuleizhang@163.com

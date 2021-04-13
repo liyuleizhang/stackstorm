@@ -1,0 +1,21 @@
+version: 1.0
+description: Ansible磁盘分区工作流
+input:
+- hosts
+- device
+- mountpoint
+tasks:
+  parted:
+    action: ansible.command hosts='{{ ctx("hosts") }}' module_name='parted' args='device={{ ctx("device") }} number=1 state=present'
+    next:
+    - when: '{{ succeeded() }}'
+      do:
+      - filesystem
+  filesystem:
+    action: ansible.command hosts='{{ ctx("hosts") }}' module_name='filesystem' args='fstype=xfs device={{ ctx("device") }}1'
+    next:
+    - when: '{{ succeeded() }}'
+      do:
+      - mount
+  mount:
+    action: ansible.command hosts='{{ ctx("hosts") }}' module_name='mount' args='fstype=xfs src={{ ctx("device") }}1 path={{ ctx("mountpoint") }} state=mounted'
