@@ -9,7 +9,7 @@ tasks:
     next:
     - when: "{{ succeeded() }}"
       do:
-      - install_common
+      - install_docker
     - when: "{{ failed() }}"
       do:
       - fail

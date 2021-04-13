@@ -1,7 +1,7 @@
 ---
-ref: install_docker
-name: install_docker
-description: 安装docker-ce
+ref: test
+name: test
+description: 测试各种功能
 keywords:
     - example
     - test
