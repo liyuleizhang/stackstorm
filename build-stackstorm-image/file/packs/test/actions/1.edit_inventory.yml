@@ -1,12 +1,35 @@
 ---
 name: 1.edit_inventory
-runner_type: "local-shell-script" #类型，shell脚本
-description: 生成inventory
+runner_type: "remote-shell-script"
+description: "生成ansible的inventory文件"
 enabled: true
-entry_point: shell/1.edit_inventory.sh
+entry_point: 'shell/1.edit_inventory.sh'
 parameters:
-    data1_ip:
-        type: string
-        description: data1节点ip地址例如（192.168.1.2）
-        required: true #此输入框必填提示*
-        position: 1
+  node1_1_ansible_hosts:
+    type: string
+    description: node1节点ip地址（例如：192.168.1.2）
+    default: 192.168.1.2
+    position: 1
+  node1_2_ansible_port:
+    type: integer
+    description: node1节点ssh端口（例如：22）
+    default: 22
+    position: 2
+  node1_3_ansible_user:
+    type: string
+    description: node1节点用户名（例如：root）
+    default: root
+    position: 3
+  node1_4_ansible_password:
+    description: node1节点密码（例如：123456）
+    default: 123456
+    position: 4
+  hosts:
+    description: 填写stackstorm宿主机ip地址，文件将生成到宿主机/tmp下作为中转（例如：192.168.1.2）
+    default: "192.168.1.2"
+  username:
+    description: 填写stackstorm宿主机的用户名
+    default: root
+  password:
+    description: 填写stackstorm宿主机的密码
+    default: centos

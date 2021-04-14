@@ -17,7 +17,7 @@ tasks:
 #      - error: "检查原生环境操作系统未通过，请查看check_origin_os日志输出确认错误原因。"
   # 2. 通过ansible脚本安装配置基础环境
   test:
-    action: ansible.playbook inventory_file="/home/stanley/inventory_test" playbook="/etc/ansible/playbooks/test/test.yml"
+    action: ansible.playbook inventory_file="/etc/ansible/stage/test/inventory" playbook="/etc/ansible/playbooks/test/test.yml"
     next:
     - when: "{{ succeeded() }}"
 #      do:
