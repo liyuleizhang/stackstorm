@@ -1,9 +1,9 @@
 ---
 name: 2.add_ansible_hosts
-runner_type: "remote-shell-script"
-description: "添加ansible的hosts服务器记录，必填项：hosts服务器信息node_1_ansible_numbers、node_2_ansible_hosts、node_3_ansible_port、node_4_ansible_user、node_5_ansible_password；stackstorm宿主机信息hosts、username、password。"
+description: 添加ansible的hosts服务器记录，必填项：hosts服务器信息node_1_ansible_numbers、node_2_ansible_hosts、node_3_ansible_port、node_4_ansible_user、node_5_ansible_password。
+runner_type: orquesta
+entry_point: workflows/2.add_ansible_hosts.yaml
 enabled: true
-entry_point: 'shell/2.add_ansible_hosts.sh'
 parameters:
   node_1_ansible_numbers:
     type: string
@@ -34,15 +34,3 @@ parameters:
     description: node节点密码（例如：123456）
     default: ''
     position: 5
-  hosts:
-    required: true
-    description: 填写stackstorm宿主机ip地址，文件将生成到宿主机/tmp下作为中转（例如：192.168.1.2）
-    default: ''
-  username:
-    required: true
-    description: 填写stackstorm宿主机的用户名，不填默认root用户（例如：root）
-    default: root
-  password:
-    required: true
-    description: 填写stackstorm宿主机的密码（例如：123456）
-    default: ''

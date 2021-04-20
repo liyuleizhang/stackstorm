@@ -1,7 +1,0 @@
-version: 1.0
-description: 查看指定inventory文件，并测试是否能正常连通，ansible的ping命令
-input:
-- filepath
-tasks:
-  testing_ansible_inventory:
-    action: core.local_sudo cmd='echo "cat "{{ ctx("filepath") }}"" && cat {{ ctx("filepath") }}&& echo "===================================" && . /opt/stackstorm/virtualenvs/ansible/bin/activate && ansible -i {{ ctx("filepath") }} all -m ping'

@@ -1,8 +1,8 @@
 ---
-name: 3.testing_ansible_inventory
+name: 4.testing_ansible_inventory
 description: 查看创建的ansible_inventory文件内容，并测试是否能正常连通，ansible的ping命令
 runner_type: orquesta
-entry_point: workflows/3.testing_ansible_inventory.yaml
+entry_point: workflows/4.testing_ansible_inventory.yaml
 enabled: true
 parameters:
   filepath:

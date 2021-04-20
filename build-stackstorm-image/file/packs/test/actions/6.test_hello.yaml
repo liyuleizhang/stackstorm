@@ -1,6 +1,6 @@
 ---
-name: 4.test
+name: 6.test_hello
 description: 用ansible在指定宿主机内输入test.txt文件
 runner_type: orquesta
-entry_point: workflows/4.test.yaml
+entry_point: workflows/6.test_hello.yaml
 enabled: true

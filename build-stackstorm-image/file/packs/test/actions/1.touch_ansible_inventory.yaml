@@ -1,9 +1,9 @@
 ---
 name: 1.touch_ansible_inventory
-runner_type: "remote-shell-script"
-description: "创建ansible的inventory文件，并添加一条hosts服务器记录，必填项：hosts服务器信息node01_1_ansible_hosts、node01_2_ansible_port、node01_3_ansible_user、node01_4_ansible_password；stackstorm宿主机信息hosts、username、password。"
+description: 创建ansible的inventory文件，并添加一条hosts服务器记录，必填项：hosts服务器信息node01_1_ansible_hosts、node01_2_ansible_port、node01_3_ansible_user、node01_4_ansible_password。
+runner_type: orquesta
+entry_point: workflows/1.touch_ansible_inventory.yaml
 enabled: true
-entry_point: 'shell/1.touch_ansible_inventory.sh'
 parameters:
   node01_1_ansible_hosts:
     type: string
@@ -28,15 +28,3 @@ parameters:
     description: node1节点密码（例如：123456）
     default: ''
     position: 4
-  hosts:
-    required: true
-    description: 填写stackstorm宿主机ip地址，文件将生成到宿主机/tmp下作为中转（例如：192.168.1.2）
-    default: ''
-  username:
-    required: true
-    description: 填写stackstorm宿主机的用户名，不填默认root用户（例如：root）
-    default: root
-  password:
-    required: true
-    description: 填写stackstorm宿主机的密码（例如：123456）
-    default: ''
