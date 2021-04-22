@@ -1,5 +1,5 @@
 version: 1.0
-description: 查看指定inventory文件，并测试是否能正常连通，ansible的ping命令
+description: 创建inventory文件，并输入一条记录
 input:
 - node01_1_ansible_hosts
 - node01_2_ansible_port

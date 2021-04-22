@@ -162,7 +162,23 @@ parameters:    #输入框
 ```
 
 （图3）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161424.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-164050.png)
+
+build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml脚本文件
+```shell
+version: 1.0   #版本
+description: 创建inventory文件，并输入一条记录   #本脚本说明
+input:    #调用build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml下的变量
+- node01_1_ansible_hosts
+- node01_2_ansible_port
+- node01_3_ansible_user
+- node01_4_ansible_password
+tasks:    #脚本
+  touch_ansible_inventory:    #名称
+    action: core.local_sudo    #调用core下的local_sudo模块
+    input:    #调用上面input导入的变量
+      cmd: 'echo "node01 ansible_host="{{ ctx("node01_1_ansible_hosts") }}" ansible_port="{{ ctx("node01_2_ansible_port") }}" ansible_user="{{ ctx("node01_3_ansible_user") }}" ansible_password="{{ ctx("node01_4_ansible_password") }}"" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory'    #在local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
+```
 
 ## 构建镜像
 
