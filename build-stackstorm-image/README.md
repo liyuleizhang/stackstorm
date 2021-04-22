@@ -185,5 +185,6 @@ tasks:    #脚本
 ```
 
 actions/1.touch_ansible_inventory.yaml和actions/workflows/1.touch_ansible_inventory.yaml文件关系图如图4
+
 （图4）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-170606.png)
