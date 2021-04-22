@@ -127,6 +127,42 @@ build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_invento
 │   └── python-tests-file
 └── README.md
 ```
+build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml文件为模块文件，对比见图3
+```shell
+---
+name: 1.touch_ansible_inventory    #模块名称，与文件名相同
+description: 创建ansible的...ssword。    #模块说明
+runner_type: orquesta    #模块类型，orquesta为调用yaml或json文件
+entry_point: workflows/1.touch_ansible_inventory.yaml    #调用的文件位置
+enabled: true
+parameters:    #输入框
+  node01_1_ansible_hosts:    #输入框名称
+    type: string    #输入框内填写的文件类型
+    required: true    #输入框是否比填
+    description: node1节点ip地址（例如：192.168.1.2）    #输入框说明文字
+    default: ''    #如果不输入的默认值，此处为空值，必须人工填写
+    position: 1    #输入框内填写后的默认变量是$1,供entry_point: workflows/1.touch_ansible_inventory.yaml调用
+  node01_2_ansible_port:
+    type: integer
+    required: true
+    description: node1节点ssh端口,不填默认22端口（例如：22）
+    default: 22
+    position: 2
+  node01_3_ansible_user:
+    type: string
+    required: true
+    description: node1节点用户名，不填默认root用户（例如：root）
+    default: root
+    position: 3
+  node01_4_ansible_password:
+    required: true
+    description: node1节点密码（例如：123456）
+    default: ''
+    position: 4
+```
+
+（图3）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161424.png)
 
 ## 构建镜像
 
