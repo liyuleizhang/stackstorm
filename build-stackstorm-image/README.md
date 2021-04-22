@@ -51,6 +51,10 @@ COPY file/ansible-file /etc/ansible
 COPY file/packs/ /opt/stackstorm/packs/
 COPY file/python-tests-file /src/tests
 ```
+修改好file文件夹内的三个服务文件后执行如下命令构建镜像
+```shell
+docker build -t stackstorm:v1 ./
+```
 
 ### build-stackstorm-image/file/packs/test/icon.png文件说明
 ```shell
@@ -180,9 +184,6 @@ tasks:    #脚本
       cmd: 'echo "node01 ansible_host="{{ ctx("node01_1_ansible_hosts") }}" ansible_port="{{ ctx("node01_2_ansible_port") }}" ansible_user="{{ ctx("node01_3_ansible_user") }}" ansible_password="{{ ctx("node01_4_ansible_password") }}"" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory'    #在local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
 ```
 
-## 构建镜像
-
-修改好file文件夹内的三个服务文件后执行如下命令构建镜像
-```shell
-docker build -t stackstorm:v1 ./
-```
+actions/1.touch_ansible_inventory.yaml和actions/workflows/1.touch_ansible_inventory.yaml文件关系图如图4
+（图4）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-170606.png)
