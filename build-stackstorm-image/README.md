@@ -55,8 +55,161 @@ COPY file/python-tests-file /src/tests
 ```shell
 docker build -t stackstorm:v1 ./
 ```
+###ansible文件说明
+#### ansible.cfg配置文件
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   ├── packs
+│   │   ├── ansible_core
+│   │   │   ├── ansible.cfg    #此文件说明
+│   │   │   ├── playbooks
+│   │   │   ├── roles 
+│   │   │   └── stage
+│   │   └── test
+│   │       └── actions
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/ansible-file/ansible.cfg文件为ansible默认的配置文件
+```shell
+[defaults]
+roles_path = roles    #指定role存放路径
+host_key_checking = False    #ansible第一次连接客户端是是否要检查ssh密钥
+deprecation_warnings = False    #运行时是否报deprecation_warnings警告信息
+```
 
-### build-stackstorm-image/file/packs/test/icon.png文件说明
+#### main.yml脚本
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   │   ├── ansible.cfg
+│   │   ├── playbooks
+│   │   ├── roles
+│   │   │   └── test
+│   │   │       └── install_docker_ce
+│   │   │           └── tasks
+│   │   │               └── main.yml    #此文件说明
+│   │   └── stage
+│   ├── packs
+│   │   ├── ansible_core
+│   │   └── test
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/ansible-file/roles/test/install_docker_ce/tasks/main.yml文件为脚本文件
+```shell
+---
+- name: install yum-utils device-mapper-persistent-data lvm2    #步骤名称
+  yum:    #调用yum模块
+    name: ['yum-utils', 'device-mapper-persistent-data', 'lvm2']    #yum安装的软件名称
+    state: present    #安装选项present或者installed为安装套件，latest为安装最新版套件；absent、removed 为卸载
+    update_cache: yes    #是否更新缓存
+    use_backend: yum
+
+- name: install docker-ce.repo    #步骤名称
+  shell: "yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo && yum makecache fast"    #使用shell模块执行命令
+
+- name: install docker-ce    #步骤名称
+  yum:
+    name: ['docker-ce']
+    state: present
+    update_cache: yes
+    use_backend: yum
+
+- name: start docker    #步骤名称
+  systemd:    #调用systemd模块（服务管理模块）
+    name: docker    #服务名称
+    state: restarted    #为服务执行重启操作
+    enabled: yes    #是否设置为开机启动
+    daemon_reload: yes    #是否读取配置文件
+
+- stat:    #模块名称（检查文件或文件系统的状态）
+    path: /usr/local/bin/docker-compose    #获取的文件绝对路径
+  register: docker_compose    #设定调用名称在下面会调用此步骤结果
+
+- name: download docker-compose    #步骤名称
+  get_url:    #模块名称（下载文件模块）
+    url: "{{ docker_compose_download_url }}"    #地址，此处调用变量，此变量可在build-stackstorm-image/file/ansible-file/stage/用户自定义名称/group_vars/all.yml中定义，本项目中在stackstorm的ansible模块中定义，定义方式在stackstorm案例4中
+    dest: /usr/local/bin/docker-compose    #文件下载位置
+    validate_certs: no    #SSL证书是否验证，没有ssl证书的网站填no
+    mode: 0755    #文件权限
+  when: not docker_compose.stat.exists    #调用docker_compose的结果，如果docker_compose下的stat模块返回信息为exists（没有）则执行此步骤
+```
+
+模块说明连接
+```shell
+https://www.kancloud.cn/louis1986/ansible/544332
+```
+
+#### install_docker_ce.yml乐本文件，定义执行步骤
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   │   ├── ansible.cfg
+│   │   ├── playbooks
+│   │   │   └── test
+│   │   │       └── install_docker_ce.yml    #此文件说明
+│   │   ├── roles
+│   │   └── stage
+│   ├── packs
+│   │   ├── ansible_core
+│   │   └── test
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/ansible-file/playbooks/test/install_docker_ce.yml乐本文件，定义执行步骤
+```shell
+---
+- name: install_docker_ce    #定义步骤名称
+  hosts: all    #运行此步骤的主机all为全部，也可写分组或者指定主机名称
+  roles:
+    - test/install_docker_ce    #脚本所在目录
+  tags: install_docker_ce    #任务标签名称
+```
+
+#### inventory文件，hosts文件
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   │   ├── ansible.cfg
+│   │   ├── playbooks
+│   │   ├── roles
+│   │   └── stage
+│   │       └── test
+│   │           └── inventory    #此文件说明
+│   ├── packs
+│   │   ├── ansible_core
+│   │   └── test
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/ansible-file/stage/test/inventory为hosts文件，定义执行脚本的主机信息
+```shell
+registry ansible_host=10.211.55.151   ansible_port=22     ansible_user=root   ansible_password=huacloud
+主机名称  ip地址                        ssh端口号            用户名               密码
+```
+可以在build-stackstorm-image/file/ansible-file/stage/test/group_vars/all.yml中定义变量，例如上面build-stackstorm-image/file/ansible-file/roles/test/install_docker_ce/tasks/main.yml文件变量docker_compose_download_url
+```shell
+docker_compose_download_url=http://*******
+```
+
+有了以上文件，可以在安装有ansible的服务器上执行如下命令启动脚本
+```shell
+ansible ­playbook -­i /etc/ansible/stage/test/inventory /etc/ansible/playbooks/test/install_docker_ce.yml
+```
+
+
+###stackstorm文件说明
+#### build-stackstorm-image/file/packs/test/icon.png文件说明
 ```shell
 .
 ├── Dockerfile
@@ -76,7 +229,7 @@ docker build -t stackstorm:v1 ./
 （图1）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161215.png)
 
-### build-stackstorm-image/file/packs/test/pack.yaml文件说明
+#### build-stackstorm-image/file/packs/test/pack.yaml文件说明
 ```shell
 .
 ├── Dockerfile
@@ -111,7 +264,7 @@ email: zhangsan@163.com    #此模块作者邮箱
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161424.png)
 
 
-### packs脚本文件说明例1
+#### packs脚本文件说明例1
 build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml 
 ```shell
@@ -199,7 +352,7 @@ echo "node01 ansible_host=ip地址 ansible_port=端口号 ansible_user=用户名
 
 例1与2.add_ansible_hosts.yaml和2.add_ansible_hosts.yaml写法与调用相同，参照例1理解
 
-### packs脚本文件说明例2
+#### packs脚本文件说明例2
 build-stackstorm-image/file/packs/test/actions/3.create_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/shell/3.create_ansible_inventory.sh
 ```shell
@@ -287,7 +440,7 @@ actions/3.create_ansible_inventory.yaml和actions/shell/3.create_ansible_invento
 （图7）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-103258.png)
 
-### packs脚本文件说明例3
+#### packs脚本文件说明例3
 build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml 
 ```shell
