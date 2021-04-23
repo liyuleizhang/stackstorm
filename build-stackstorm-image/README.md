@@ -123,7 +123,8 @@ build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_invento
 │   │   ├── ansible_core
 │   │   └── test
 │   │       ├── actions
-│   │       │   ├── 1.touch_ansible_inventory.yaml    #此文件说明    
+│   │       │   ├── 1.touch_ansible_inventory.yaml    #此文件说明   
+│   │       │   ├── shell
 │   │       │   └── workflows
 │   │       │       └── 1.touch_ansible_inventory.yaml    #此文件说明
 │   │       ├── icon.png
@@ -163,6 +164,99 @@ parameters:    #输入框
     description: node1节点密码（例如：123456）
     default: ''
     position: 4
+```
+
+（图3）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-164050.png)
+
+build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml脚本文件
+```shell
+version: 1.0   #版本
+description: 创建inventory文件，并输入一条记录   #本脚本说明
+input:    #调用build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml下的变量
+- node01_1_ansible_hosts
+- node01_2_ansible_port
+- node01_3_ansible_user
+- node01_4_ansible_password
+tasks:    #脚本
+  touch_ansible_inventory:    #名称
+    action: core.local_sudo    #调用core下的local_sudo模块
+    input:    #调用上面input导入的变量
+      cmd: 'echo "node01 ansible_host="{{ ctx("node01_1_ansible_hosts") }}" ansible_port="{{ ctx("node01_2_ansible_port") }}" ansible_user="{{ ctx("node01_3_ansible_user") }}" ansible_password="{{ ctx("node01_4_ansible_password") }}"" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory'    #在local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
+```
+
+actions/1.touch_ansible_inventory.yaml和actions/workflows/1.touch_ansible_inventory.yaml文件关系图如图4
+
+（图4）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-092025.png)
+
+实际例1编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后和例1结果相同，如图5
+```shell
+echo "node01 ansible_host=ip地址 ansible_port=端口号 ansible_user=用户名 ansible_password=密码" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory
+```
+（图5）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-093105.png)
+
+例1与2.add_ansible_hosts.yaml和2.add_ansible_hosts.yaml写法与调用相同，参照例1理解
+
+### packs脚本文件说明例2
+build-stackstorm-image/file/packs/test/actions/3.create_ansible_inventory.yaml
+build-stackstorm-image/file/packs/test/actions/shell/3.create_ansible_inventory.sh
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   ├── packs
+│   │   ├── ansible_core
+│   │   └── test
+│   │       ├── actions
+│   │       │   ├── 3.create_ansible_inventory.yaml    #此文件说明   
+│   │       │   ├── shell
+│   │       │       └── 3.create_ansible_inventory.sh    #此文件说明
+│   │       │   └── workflows
+│   │       ├── icon.png
+│   │       └── pack.yaml
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/packs/test/actions/3.create_ansible_inventory.yaml文件为模块文件，对比见图3
+```shell
+---
+name: 3.create_ansible_inventory    #模块名称，与文件名相同
+runner_type: "local-shell-script"    #模块类型，此类型支持在指定主机中执行shell脚本
+description: "创建ansible的in。。。word。"    #模块说明
+enabled: true
+entry_point: 'shell/3.create_ansible_inventory.sh'    #调用shell脚本位置
+parameters:    #输入框
+  sudo:    #设置以管理员身份运行
+    default: true
+    immutable: true
+  node01:    #输入框名称
+    type: string    #输入内容类型
+    required: true   #输入框是否比填
+    description: '填写格。。。56）'    #输入框说明文字
+    default: 'node01 ansible_host=192.168.1.1 ansible_port=22 ansible_user=root ansible_password=123456'   #如果不输入的默认值
+    position: 1   #输入框内填写后的默认变量是$1,供entry_point: 'shell/3.create_ansible_inventory.sh'调用
+  node02:
+    type: string
+    required: true
+    description: '填写格式:节点名称 ansible_host=ip地址 ansible_port=ssh端口 ansible_user=用户名 ansible_password=密码,不填则为空。（例如：node02 ansible_host=192.168.1.2 ansible_port=22 ansible_user=root ansible_password=123456）'
+    default: '#'
+    position: 2
+  node03:
+    type: string
+    required: true
+    description: '填写格式:节点名称 ansible_host=ip地址 ansible_port=ssh端口 ansible_user=用户名 ansible_password=密码,不填则为空。（例如：node03 ansible_host=192.168.1.3 ansible_port=22 ansible_user=root ansible_password=123456）'
+    default: '#'
+    position: 3
+  node04:
+    type: string
+    required: true
+    description: '填写格式:节点名称 ansible_host=ip地址 ansible_port=ssh端口 ansible_user=用户名 ansible_password=密码,不填则为空。（例如：node04 ansible_host=192.168.1.4 ansible_port=22 ansible_user=root ansible_password=123456）'
+    default: '#'
+    position: 4
+
 ```
 
 （图3）
