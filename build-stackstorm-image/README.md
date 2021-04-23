@@ -287,3 +287,72 @@ actions/3.create_ansible_inventory.yaml和actions/shell/3.create_ansible_invento
 （图7）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-103258.png)
 
+### packs脚本文件说明例3
+build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml
+build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml 
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   ├── packs
+│   │   ├── ansible_core
+│   │   └── test
+│   │       ├── actions
+│   │       │   ├── 4.testing_ansible_inventory.yaml    #此文件说明   
+│   │       │   ├── shell
+│   │       │   └── workflows
+│   │       │       └── 4.testing_ansible_inventory.yaml    #此文件说明
+│   │       ├── icon.png
+│   │       └── pack.yaml
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml文件为模块文件，对比见图8
+```shell
+---
+name: 4.testing_ansible_inventory    #模块名称，与文件名相同
+description: 查看创建的ansible_inventory文件内容，并测试是否能正常连通，ansible的ping命令    #模块说明
+runner_type: orquesta    #模块类型，orquesta为调用yaml或json文件
+entry_point: workflows/4.testing_ansible_inventory.yaml    #调用的文件位置
+enabled: true
+parameters:    #输入框
+  filepath:    #输入框名称
+    description: "inventory文件的绝对路径"    #输入框说明文字
+    default: "/etc/ansible/stage/test/inventory"    #默认带入值
+    type: string   #输入框内填写的文件类型
+    required: true   #输入框是否比填
+    position: 0    #输入框内填写后的默认变量是$0
+```
+
+（图8）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-164050.png)
+
+build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml脚本文件
+```shell
+version: 1.0   #版本
+description: 创建inventory文件，并输入一条记录   #本脚本说明
+input:    #调用build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml下的变量
+- node01_1_ansible_hosts
+- node01_2_ansible_port
+- node01_3_ansible_user
+- node01_4_ansible_password
+tasks:    #脚本
+  touch_ansible_inventory:    #名称
+    action: core.local_sudo    #调用core下的local_sudo模块
+    input:    #调用上面input导入的变量
+      cmd: 'echo "node01 ansible_host="{{ ctx("node01_1_ansible_hosts") }}" ansible_port="{{ ctx("node01_2_ansible_port") }}" ansible_user="{{ ctx("node01_3_ansible_user") }}" ansible_password="{{ ctx("node01_4_ansible_password") }}"" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory'    #在local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
+```
+
+actions/1.touch_ansible_inventory.yaml和actions/workflows/1.touch_ansible_inventory.yaml文件关系图如图9
+
+（图9）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-092025.png)
+
+实际例1编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后和例1结果相同，如图10
+```shell
+echo "node01 ansible_host=ip地址 ansible_port=端口号 ansible_user=用户名 ansible_password=密码" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory
+```
+（图10）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-093105.png)
+
