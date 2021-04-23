@@ -351,12 +351,20 @@ tasks:    #脚本
 actions/4.testing_ansible_inventory.yaml和actions/workflows/4.testing_ansible_inventory.yaml文件关系图如图9
 
 （图9）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-092025.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-113006.png)
 
-实际例1编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后和例1结果相同，如图10
+实际例3编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后再在ansible模块下的command中的inventory_file、hosts、module_name输入如下内容执行后和例3结果相同，如图10
 ```shell
-echo "node01 ansible_host=ip地址 ansible_port=端口号 ansible_user=用户名 ansible_password=密码" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory
+core模块下的local_sudo中的cmd中输入如下内容
+cat /etc/ansible/stage/test/inventory
+
+ansible模块下的command中的inventory_file输入如下内容
+/etc/ansible/stage/test/inventory
+ansible模块下的command中的hosts输入如下内容
+all
+ansible模块下的command中的module_name输入如下内容
+ping
 ```
 （图10）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-093105.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-114131.png)
 
