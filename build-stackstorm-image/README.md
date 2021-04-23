@@ -326,25 +326,29 @@ parameters:    #输入框
 ```
 
 （图8）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-164050.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-105500.png)
 
-build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml脚本文件
+build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml脚本文件
 ```shell
 version: 1.0   #版本
-description: 创建inventory文件，并输入一条记录   #本脚本说明
-input:    #调用build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml下的变量
-- node01_1_ansible_hosts
-- node01_2_ansible_port
-- node01_3_ansible_user
-- node01_4_ansible_password
+description: 查看指定inventory文件，并测试是否能正常连通，ansible的ping命令   #本脚本说明
+input:    #调用build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml下的变量
+- filepath
 tasks:    #脚本
-  touch_ansible_inventory:    #名称
-    action: core.local_sudo    #调用core下的local_sudo模块
-    input:    #调用上面input导入的变量
-      cmd: 'echo "node01 ansible_host="{{ ctx("node01_1_ansible_hosts") }}" ansible_port="{{ ctx("node01_2_ansible_port") }}" ansible_user="{{ ctx("node01_3_ansible_user") }}" ansible_password="{{ ctx("node01_4_ansible_password") }}"" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory'    #在local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
+  cat_ansible_inventory:    #第一个脚本名称
+    action: core.local_sudo cmd='cat {{ ctx("filepath") }}'    #调用core下的local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
+    next:    #判断
+    - when: "{{ succeeded() }}"    #如果执行完本脚本返回为succeeded完成
+      do:    #则执行下面的内容
+      - ping_ansible_inventory    #执行名称为ping_ansible_inventory的脚本
+    - when: "{{ failed() }}"    #如果执行完本脚本返回为failed未完成
+      do:    #则执行下面的内容
+      - fail    #停止运行
+  ping_ansible_inventory:    #第二个脚本名称
+    action: ansible.command inventory_file='{{ ctx("filepath") }}' hosts='all' module_name='ping'   #调用ansible下的command模块下的inventory_file输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量，hosts输入框内的内容指定为all，module_name输入框内的内容指定为ping
 ```
 
-actions/1.touch_ansible_inventory.yaml和actions/workflows/1.touch_ansible_inventory.yaml文件关系图如图9
+actions/4.testing_ansible_inventory.yaml和actions/workflows/4.testing_ansible_inventory.yaml文件关系图如图9
 
 （图9）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-092025.png)
