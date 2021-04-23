@@ -1,6 +1,6 @@
 # stackstorm3.1自定义镜像制作
 
-## file目录说明
+## 1.file目录说明
 
 ```shell
 .
@@ -30,8 +30,8 @@
 
 ```
 
-## 文件说明
-### build-stackstorm-image/Dockerfile文件说明
+## 2.文件说明
+### 2.1build-stackstorm-image/Dockerfile文件说明
 ```shell
 .
 ├── Dockerfile    #此文件说明
@@ -55,8 +55,8 @@ COPY file/python-tests-file /src/tests
 ```shell
 docker build -t stackstorm:v1 ./
 ```
-### ansible文件说明
-#### ansible.cfg配置文件
+### 2.2ansible文件说明
+#### 2.2.1ansible.cfg配置文件
 ```shell
 .
 ├── Dockerfile
@@ -81,7 +81,7 @@ host_key_checking = False    #ansible第一次连接客户端是是否要检查s
 deprecation_warnings = False    #运行时是否报deprecation_warnings警告信息
 ```
 
-#### main.yml脚本
+#### 2.2.2main.yml脚本
 ```shell
 .
 ├── Dockerfile
@@ -146,7 +146,7 @@ build-stackstorm-image/file/ansible-file/roles/test/install_docker_ce/tasks/main
 https://www.kancloud.cn/louis1986/ansible/544332
 ```
 
-#### install_docker_ce.yml乐本文件，定义执行步骤
+#### 2.2.3install_docker_ce.yml乐本文件，定义执行步骤
 ```shell
 .
 ├── Dockerfile
@@ -174,7 +174,7 @@ build-stackstorm-image/file/ansible-file/playbooks/test/install_docker_ce.yml乐
   tags: install_docker_ce    #任务标签名称
 ```
 
-#### inventory文件，hosts文件
+#### 2.2.4inventory文件，hosts文件
 ```shell
 .
 ├── Dockerfile
@@ -208,8 +208,8 @@ ansible ­playbook -­i /etc/ansible/stage/test/inventory /etc/ansible/playbooks
 ```
 
 
-### stackstorm文件说明
-#### build-stackstorm-image/file/packs/test/icon.png文件说明
+### 2.3stackstorm文件说明
+#### 2.3.1build-stackstorm-image/file/packs/test/icon.png文件说明
 ```shell
 .
 ├── Dockerfile
@@ -229,7 +229,7 @@ ansible ­playbook -­i /etc/ansible/stage/test/inventory /etc/ansible/playbooks
 （图1）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161215.png)
 
-#### build-stackstorm-image/file/packs/test/pack.yaml文件说明
+#### 2.3.2build-stackstorm-image/file/packs/test/pack.yaml文件说明
 ```shell
 .
 ├── Dockerfile
@@ -264,7 +264,7 @@ email: zhangsan@163.com    #此模块作者邮箱
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161424.png)
 
 
-#### packs脚本文件说明例1
+#### 2.3.3packs脚本文件说明例1
 build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml 
 ```shell
@@ -352,7 +352,7 @@ echo "node01 ansible_host=ip地址 ansible_port=端口号 ansible_user=用户名
 
 例1与2.add_ansible_hosts.yaml和2.add_ansible_hosts.yaml写法与调用相同，参照例1理解
 
-#### packs脚本文件说明例2
+#### 2.3.4packs脚本文件说明例2
 build-stackstorm-image/file/packs/test/actions/3.create_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/shell/3.create_ansible_inventory.sh
 ```shell
@@ -440,7 +440,7 @@ actions/3.create_ansible_inventory.yaml和actions/shell/3.create_ansible_invento
 （图7）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-103258.png)
 
-#### packs脚本文件说明例3
+#### 2.3.5packs脚本文件说明例3
 build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml 
 ```shell
