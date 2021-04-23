@@ -220,7 +220,7 @@ build-stackstorm-image/file/packs/test/actions/shell/3.create_ansible_inventory.
 │   └── python-tests-file
 └── README.md
 ```
-build-stackstorm-image/file/packs/test/actions/3.create_ansible_inventory.yaml文件为模块文件，对比见图3
+build-stackstorm-image/file/packs/test/actions/3.create_ansible_inventory.yaml文件为模块文件，对比见图6
 ```shell
 ---
 name: 3.create_ansible_inventory    #模块名称，与文件名相同
@@ -259,28 +259,32 @@ parameters:    #输入框
 
 ```
 
-（图3）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-164050.png)
+（图6）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-101848.png)
 
-build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml脚本文件
+build-stackstorm-image/file/packs/test/actions/shell/3.create_ansible_inventory.sh脚本文件
+这个就是普通的shell脚本
 ```shell
-version: 1.0   #版本
-description: 创建inventory文件，并输入一条记录   #本脚本说明
-input:    #调用build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml下的变量
-- node01_1_ansible_hosts
-- node01_2_ansible_port
-- node01_3_ansible_user
-- node01_4_ansible_password
-tasks:    #脚本
-  touch_ansible_inventory:    #名称
-    action: core.local_sudo    #调用core下的local_sudo模块
-    input:    #调用上面input导入的变量
-      cmd: 'echo "node01 ansible_host="{{ ctx("node01_1_ansible_hosts") }}" ansible_port="{{ ctx("node01_2_ansible_port") }}" ansible_user="{{ ctx("node01_3_ansible_user") }}" ansible_password="{{ ctx("node01_4_ansible_password") }}"" >/etc/ansible/stage/test/inventory && cat /etc/ansible/stage/test/inventory'    #在local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
+#!/usr/bin/env bash
+
+node01=$1
+node02=$2
+node03=$3
+node04=$4
+
+cat > /etc/ansible/stage/test/inventory <<- EOF
+${node01}
+${node02}
+${node03}
+${node04}
+EOF
+
+cat /etc/ansible/stage/test/inventory
 ```
 
-actions/1.touch_ansible_inventory.yaml和actions/workflows/1.touch_ansible_inventory.yaml文件关系图如图4
+actions/3.create_ansible_inventory.yaml和actions/shell/3.create_ansible_inventory.sh对应图如图7
 
-（图4）
+（图7）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-092025.png)
 
 实际例1编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后和例1结果相同，如图5
