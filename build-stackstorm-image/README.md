@@ -55,7 +55,7 @@ COPY file/python-tests-file /src/tests
 ```shell
 docker build -t stackstorm:v1 ./
 ```
-###ansible文件说明
+### ansible文件说明
 #### ansible.cfg配置文件
 ```shell
 .
@@ -208,7 +208,7 @@ ansible ­playbook -­i /etc/ansible/stage/test/inventory /etc/ansible/playbooks
 ```
 
 
-###stackstorm文件说明
+### stackstorm文件说明
 #### build-stackstorm-image/file/packs/test/icon.png文件说明
 ```shell
 .
