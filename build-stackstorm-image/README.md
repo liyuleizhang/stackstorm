@@ -326,7 +326,7 @@ parameters:    #输入框
 ```
 
 （图8）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-105500.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-120527.png)
 
 build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml脚本文件
 ```shell
