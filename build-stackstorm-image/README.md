@@ -581,20 +581,17 @@ tasks:    #脚本
 actions/5.install_docker_ce.yaml和actions/workflows/5.install_docker_ce.yaml文件关系图如图9
 
 （图12）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-113006.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-114056.png)
 
-实际例3编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后再在ansible模块下的command中的inventory_file、hosts、module_name输入如下内容执行后和例3结果相同，如图10
+实际例4编写的两个脚本的功能可以在ansible模块下的playbook中的playbook、inventory_file、extra_vars中输入如下内容执行后和例4结果相同，如图13
 ```shell
-core模块下的local_sudo中的cmd中输入如下内容
-cat /etc/ansible/stage/test/inventory
-
-ansible模块下的command中的inventory_file输入如下内容
+ansible模块下的playbook中的playbook输入如下内容
+/etc/ansible/playbooks/test/install_docker_ce.yml
+ansible模块下的playbook中的inventory_file输入如下内容
 /etc/ansible/stage/test/inventory
-ansible模块下的command中的hosts输入如下内容
-all
-ansible模块下的command中的module_name输入如下内容
-ping
+ansible模块下的playbook中的extra_vars输入如下内容
+docker_compose_download_url=http://*******
 ```
-（图10）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-114131.png)
+（图13）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-114853.png)
 
