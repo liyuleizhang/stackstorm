@@ -523,6 +523,7 @@ ping
 
 #### 2.3.5packs脚本文件说明例4
 build-stackstorm-image/file/packs/test/actions/5.install_docker_ce.yaml
+
 build-stackstorm-image/file/packs/test/actions/workflows/5.install_docker_ce.yaml
 ```shell
 .
