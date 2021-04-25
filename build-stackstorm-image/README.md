@@ -326,11 +326,11 @@ build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_invento
 ```shell
 version: 1.0   #版本
 description: 创建inventory文件，并输入一条记录   #本脚本说明
-input:    #调用build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml下的变量
-- node01_1_ansible_hosts
-- node01_2_ansible_port
-- node01_3_ansible_user
-- node01_4_ansible_password
+input:    #调用build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml下的输入框内容
+- node01_1_ansible_hosts    #输入框名称
+- node01_2_ansible_port    #输入框名称
+- node01_3_ansible_user    #输入框名称
+- node01_4_ansible_password    #输入框名称
 tasks:    #脚本
   touch_ansible_inventory:    #名称
     action: core.local_sudo    #调用core下的local_sudo模块
@@ -485,8 +485,8 @@ build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inven
 ```shell
 version: 1.0   #版本
 description: 查看指定inventory文件，并测试是否能正常连通，ansible的ping命令   #本脚本说明
-input:    #调用build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml下的变量
-- filepath
+input:    #调用build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml下的输入框内容
+- filepath    #输入框名称
 tasks:    #脚本
   cat_ansible_inventory:    #第一个脚本名称
     action: core.local_sudo cmd='cat {{ ctx("filepath") }}'    #调用core下的local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
@@ -560,31 +560,27 @@ parameters:    #输入框
 ```
 
 （图11）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-120527.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-111148.png)
 
-build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml脚本文件
+build-stackstorm-image/file/packs/test/actions/workflows/5.install_docker_ce.yaml脚本文件
 ```shell
 version: 1.0   #版本
-description: 查看指定inventory文件，并测试是否能正常连通，ansible的ping命令   #本脚本说明
-input:    #调用build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml下的变量
-- filepath
+description: 用ansible在指定宿主机内安装docker-ce最新版本和docker-compose，需要目标主机连外网   #本脚本说明
+input:    #调用build-stackstorm-image/file/packs/test/actions/5.install_docker_ce.yaml下的输入框内容
+- docker_compose_download_url    #输入框名称
 tasks:    #脚本
-  cat_ansible_inventory:    #第一个脚本名称
-    action: core.local_sudo cmd='cat {{ ctx("filepath") }}'    #调用core下的local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
-    next:    #判断
-    - when: "{{ succeeded() }}"    #如果执行完本脚本返回为succeeded完成
-      do:    #则执行下面的内容
-      - ping_ansible_inventory    #执行名称为ping_ansible_inventory的脚本
-    - when: "{{ failed() }}"    #如果执行完本脚本返回为failed未完成
-      do:    #则执行下面的内容
-      - fail    #停止运行
-  ping_ansible_inventory:    #第二个脚本名称
-    action: ansible.command inventory_file='{{ ctx("filepath") }}' hosts='all' module_name='ping'   #调用ansible下的command模块下的inventory_file输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量，hosts输入框内的内容指定为all，module_name输入框内的内容指定为ping
+  install_docker_ce:    #第一个脚本名称
+    action: ansible.playbook    #调用ansible下的playbook模块
+    input:    #在分行写的格式下需要调用输入框内容，则在调用输入框内容上层填写input
+      playbook: /etc/ansible/playbooks/test/install_docker_ce.yml    #在ansible.playbook下的playbook空内填入的值
+      inventory_file: /etc/ansible/stage/test/inventory   #在ansible.playbook下的inventory_file空内填入的值
+      extra_vars:   #在ansible.playbook下的extra_vars空内填入的值，如果值比较多，则按照此格式填写
+        - docker_compose_download_url="{{ ctx("docker_compose_download_url") }}"    #设置的变量（名称=值），这里调用actions/5.install_docker_ce.yaml文件的docker_compose_download_url输入框
 ```
 
-actions/4.testing_ansible_inventory.yaml和actions/workflows/4.testing_ansible_inventory.yaml文件关系图如图9
+actions/5.install_docker_ce.yaml和actions/workflows/5.install_docker_ce.yaml文件关系图如图9
 
-（图9）
+（图12）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-113006.png)
 
 实际例3编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后再在ansible模块下的command中的inventory_file、hosts、module_name输入如下内容执行后和例3结果相同，如图10
