@@ -473,12 +473,93 @@ parameters:    #输入框
   filepath:    #输入框名称
     description: "inventory文件的绝对路径"    #输入框说明文字
     default: "/etc/ansible/stage/test/inventory"    #默认带入值
-    type: string   #输入框内填写的文件类型
+    type: string   #输入框内填写的文字类型
     required: true   #输入框是否比填
     position: 0    #输入框内填写后的默认变量是$0
 ```
 
 （图8）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-120527.png)
+
+build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml脚本文件
+```shell
+version: 1.0   #版本
+description: 查看指定inventory文件，并测试是否能正常连通，ansible的ping命令   #本脚本说明
+input:    #调用build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml下的变量
+- filepath
+tasks:    #脚本
+  cat_ansible_inventory:    #第一个脚本名称
+    action: core.local_sudo cmd='cat {{ ctx("filepath") }}'    #调用core下的local_sudo模块下的cmd输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量
+    next:    #判断
+    - when: "{{ succeeded() }}"    #如果执行完本脚本返回为succeeded完成
+      do:    #则执行下面的内容
+      - ping_ansible_inventory    #执行名称为ping_ansible_inventory的脚本
+    - when: "{{ failed() }}"    #如果执行完本脚本返回为failed未完成
+      do:    #则执行下面的内容
+      - fail    #停止运行
+  ping_ansible_inventory:    #第二个脚本名称
+    action: ansible.command inventory_file='{{ ctx("filepath") }}' hosts='all' module_name='ping'   #调用ansible下的command模块下的inventory_file输入框输入''内的内容，"{{ ctx("##") }}"为调用的变量，hosts输入框内的内容指定为all，module_name输入框内的内容指定为ping
+```
+
+actions/4.testing_ansible_inventory.yaml和actions/workflows/4.testing_ansible_inventory.yaml文件关系图如图9
+
+（图9）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-113006.png)
+
+实际例3编写的两个脚本的功能可以在core模块下的local_sudo中的cmd中输入如下内容，执行后再在ansible模块下的command中的inventory_file、hosts、module_name输入如下内容执行后和例3结果相同，如图10
+```shell
+core模块下的local_sudo中的cmd中输入如下内容
+cat /etc/ansible/stage/test/inventory
+
+ansible模块下的command中的inventory_file输入如下内容
+/etc/ansible/stage/test/inventory
+ansible模块下的command中的hosts输入如下内容
+all
+ansible模块下的command中的module_name输入如下内容
+ping
+```
+（图10）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-114131.png)
+
+#### 2.3.5packs脚本文件说明例4
+build-stackstorm-image/file/packs/test/actions/5.install_docker_ce.yaml
+build-stackstorm-image/file/packs/test/actions/workflows/5.install_docker_ce.yaml
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   ├── packs
+│   │   ├── ansible_core
+│   │   └── test
+│   │       ├── actions
+│   │       │   ├── 5.install_docker_ce.yaml    #此文件说明   
+│   │       │   ├── shell
+│   │       │   └── workflows
+│   │       │       └── 5.install_docker_ce.yaml    #此文件说明
+│   │       ├── icon.png
+│   │       └── pack.yaml
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/packs/test/actions/5.install_docker_ce.yaml文件为模块文件，对比见图11
+```shell
+---
+name: 5.install_docker_ce   #模块名称，与文件名相同
+description: 用ansible在指定宿主机内安装docker-ce最新版本和docker-compose，需要目标主机连外网    #模块说明
+runner_type: orquesta    #模块类型，orquesta为调用yaml或json文件
+entry_point: workflows/5.install_docker_ce.yaml    #调用的文件位置
+enabled: true
+parameters:    #输入框
+  docker_compose_download_url:    #输入框名称
+    description: "docker_compose网络下载url，不填使用默认地址"    #输入框说明文字
+    default: "http://liyulei.f3322.net:8081/repository/miscs/docker/docker-compose"    #默认带入值
+    type: string    #输入框内填写的文字类型
+    required: true   #输入框是否比填
+    position: 0    #输入框内填写后的默认变量是$0
+```
+
+（图11）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-120527.png)
 
 build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml脚本文件
