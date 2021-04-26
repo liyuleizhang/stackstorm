@@ -654,6 +654,8 @@ trigger:    #使用的触发器
     hour: "8"
 action:    #执行的任务
   ref: test.6.test_hello
+    parameters:    #输入框
+        name: Yo    #name输入框内容输入Yo
 ```
 说明当触发器core.st2.CronTimer时间到每天8点时，执行test.6.test_hello任务
 

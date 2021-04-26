@@ -10,3 +10,5 @@ trigger:    #使用的触发器
     hour: "8"
 action:    #执行的任务
   ref: test.6.test_hello
+    parameters:
+        name: Yo
