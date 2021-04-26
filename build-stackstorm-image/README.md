@@ -22,9 +22,10 @@
     │   │       ├── scripts    #自定义名称目录，调用的脚本类型分类目录
     │   │       └── workflows    #自定义名称目录，调用的脚本类型分类目录
     │   └── test    #自定义名称目录，名称为test的pack模块目录
-    │       └── actions    #固定目录，脚本目录
-    │           ├── shell     #自定义名称目录，调用的脚本类型分类目录
-    │           └── workflows    #自定义名称目录，调用的脚本类型分类目录
+    │       ├── actions    #固定目录，脚本目录
+    │       │   ├── shell     #自定义名称目录，调用的脚本类型分类目录
+    │       │   └── workflows    #自定义名称目录，调用的脚本类型分类目录
+    │       └── rules    #固定目录，规则脚本目录
     └── python-tests-file	#python脚本目录
         └── __pycache__
 
@@ -70,6 +71,7 @@ docker build -t stackstorm:v1 ./
 │   │   │   └── stage
 │   │   └── test
 │   │       └── actions
+│   │       └── rules
 │   └── python-tests-file
 └── README.md
 ```
@@ -209,7 +211,7 @@ ansible ­playbook -­i /etc/ansible/stage/test/inventory /etc/ansible/playbooks
 
 
 ### 2.3stackstorm文件说明
-#### 2.3.1build-stackstorm-image/file/packs/test/icon.png文件说明
+#### 2.3.1 icon.png文件
 ```shell
 .
 ├── Dockerfile
@@ -219,17 +221,20 @@ ansible ­playbook -­i /etc/ansible/stage/test/inventory /etc/ansible/playbooks
 │   │   ├── ansible_core
 │   │   └── test
 │   │       ├── actions
+│   │       ├── rules
 │   │       ├── icon.png    #此文件说明
 │   │       └── pack.yaml
 │   └── python-tests-file
 └── README.md
 ```
+
+build-stackstorm-image/file/packs/test/icon.png
 此文件为图片文件，最终显示在stackstorm的web页面下图1样式
 
 （图1）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161215.png)
 
-#### 2.3.2build-stackstorm-image/file/packs/test/pack.yaml文件说明
+#### 2.3.2 pack.yaml文件说明
 ```shell
 .
 ├── Dockerfile
@@ -239,11 +244,14 @@ ansible ­playbook -­i /etc/ansible/stage/test/inventory /etc/ansible/playbooks
 │   │   ├── ansible_core
 │   │   └── test
 │   │       ├── actions
+│   │       ├── rules
 │   │       ├── icon.png
 │   │       └── pack.yaml    #此文件说明
 │   └── python-tests-file
 └── README.md
 ```
+
+build-stackstorm-image/file/packs/test/pack.yaml
 此文件为模块说明文件
 ```shell
 ---
@@ -263,8 +271,15 @@ email: zhangsan@163.com    #此模块作者邮箱
 （图2）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210422-161424.png)
 
+#### 2.3.3 actions脚本文件
+任务脚本
+文件路径build-stackstorm-image/file/packs/包名称/actions/
 
-#### 2.3.3packs脚本文件说明例1
+web页面位置
+
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210426-112908.png)
+
+##### 2.3.3.1 例1
 build-stackstorm-image/file/packs/test/actions/1.touch_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_inventory.yaml 
 ```shell
@@ -280,6 +295,7 @@ build-stackstorm-image/file/packs/test/actions/workflows/1.touch_ansible_invento
 │   │       │   ├── shell
 │   │       │   └── workflows
 │   │       │       └── 1.touch_ansible_inventory.yaml    #此文件说明
+│   │       ├── rules
 │   │       ├── icon.png
 │   │       └── pack.yaml
 │   └── python-tests-file
@@ -352,7 +368,7 @@ echo "node01 ansible_host=ip地址 ansible_port=端口号 ansible_user=用户名
 
 例1与2.add_ansible_hosts.yaml和2.add_ansible_hosts.yaml写法与调用相同，参照例1理解
 
-#### 2.3.4packs脚本文件说明例2
+##### 2.3.3.2 例2
 build-stackstorm-image/file/packs/test/actions/3.create_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/shell/3.create_ansible_inventory.sh
 ```shell
@@ -366,8 +382,9 @@ build-stackstorm-image/file/packs/test/actions/shell/3.create_ansible_inventory.
 │   │       ├── actions
 │   │       │   ├── 3.create_ansible_inventory.yaml    #此文件说明   
 │   │       │   ├── shell
-│   │       │       └── 3.create_ansible_inventory.sh    #此文件说明
+│   │       │   │   └── 3.create_ansible_inventory.sh    #此文件说明
 │   │       │   └── workflows
+│   │       ├── rules
 │   │       ├── icon.png
 │   │       └── pack.yaml
 │   └── python-tests-file
@@ -440,7 +457,7 @@ actions/3.create_ansible_inventory.yaml和actions/shell/3.create_ansible_invento
 （图7）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-103258.png)
 
-#### 2.3.5packs脚本文件说明例3
+##### 2.3.3.3 例3
 build-stackstorm-image/file/packs/test/actions/4.testing_ansible_inventory.yaml
 build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inventory.yaml 
 ```shell
@@ -456,6 +473,7 @@ build-stackstorm-image/file/packs/test/actions/workflows/4.testing_ansible_inven
 │   │       │   ├── shell
 │   │       │   └── workflows
 │   │       │       └── 4.testing_ansible_inventory.yaml    #此文件说明
+│   │       ├── rules
 │   │       ├── icon.png
 │   │       └── pack.yaml
 │   └── python-tests-file
@@ -521,7 +539,7 @@ ping
 （图10）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210423-114131.png)
 
-#### 2.3.5packs脚本文件说明例4
+##### 2.3.3.4 例4
 build-stackstorm-image/file/packs/test/actions/5.install_docker_ce.yaml
 
 build-stackstorm-image/file/packs/test/actions/workflows/5.install_docker_ce.yaml
@@ -538,6 +556,7 @@ build-stackstorm-image/file/packs/test/actions/workflows/5.install_docker_ce.yam
 │   │       │   ├── shell
 │   │       │   └── workflows
 │   │       │       └── 5.install_docker_ce.yaml    #此文件说明
+│   │       ├── rules
 │   │       ├── icon.png
 │   │       └── pack.yaml
 │   └── python-tests-file
@@ -596,3 +615,80 @@ docker_compose_download_url=http://*******
 （图13）
 ![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-114853.png)
 
+#### 2.3.4 rules规则文件
+rules根据规则启动actions脚本文件
+文件路径build-stackstorm-image/file/packs/包名称/rules/
+web页面位置
+
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210426-113154.png)
+##### 2.3.4.1 例1
+build-stackstorm-image/file/packs/test/rules/1.timing_task.yaml
+
+```shell
+.
+├── Dockerfile
+├── file
+│   ├── ansible-file
+│   ├── packs
+│   │   ├── ansible_core
+│   │   └── test
+│   │       ├── actions
+│   │       ├── rules
+│   │       │   └── 1.timing_task.yaml    #此文件说明
+│   │       ├── icon.png
+│   │       └── pack.yaml
+│   └── python-tests-file
+└── README.md
+```
+build-stackstorm-image/file/packs/test/rules/1.timing_task.yaml规则脚本，对比见图14
+```shell
+---
+name: 1.timing_task    #名称
+description: 每日早8点定时执行test模块下6.test_hello任务       #本脚本说明
+enabled: false    #是否开启脚本
+trigger:    #使用的触发器
+  type: core.st2.CronTimer    #触发器名称
+  parameters:    #输入栏，year年、month月、day日、hour小时24进制、minute分、second秒
+    second: "0"
+    minute: "0"
+    hour: "8"
+action:    #执行的任务
+  ref: test.6.test_hello
+```
+说明当触发器core.st2.CronTimer时间到每天8点时，执行test.6.test_hello任务
+
+（图14）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-111148.png)
+
+build-stackstorm-image/file/packs/test/actions/workflows/5.install_docker_ce.yaml脚本文件
+```shell
+version: 1.0   #版本
+description: 用ansible在指定宿主机内安装docker-ce最新版本和docker-compose，需要目标主机连外网   #本脚本说明
+input:    #调用build-stackstorm-image/file/packs/test/actions/5.install_docker_ce.yaml下的输入框内容
+- docker_compose_download_url    #输入框名称
+tasks:    #脚本
+  install_docker_ce:    #第一个脚本名称
+    action: ansible.playbook    #调用ansible下的playbook模块
+    input:    #在分行写的格式下需要调用输入框内容，则在调用输入框内容上层填写input
+      playbook: /etc/ansible/playbooks/test/install_docker_ce.yml    #在ansible.playbook下的playbook空内填入的值
+      inventory_file: /etc/ansible/stage/test/inventory   #在ansible.playbook下的inventory_file空内填入的值
+      extra_vars:   #在ansible.playbook下的extra_vars空内填入的值，如果值比较多，则按照此格式填写
+        - docker_compose_download_url="{{ ctx("docker_compose_download_url") }}"    #设置的变量（名称=值），这里调用actions/5.install_docker_ce.yaml文件的docker_compose_download_url输入框
+```
+
+actions/5.install_docker_ce.yaml和actions/workflows/5.install_docker_ce.yaml文件关系图如图9
+
+（图12）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-114056.png)
+
+实际例4编写的两个脚本的功能可以在ansible模块下的playbook中的playbook、inventory_file、extra_vars中输入如下内容执行后和例4结果相同，如图13
+```shell
+ansible模块下的playbook中的playbook输入如下内容
+/etc/ansible/playbooks/test/install_docker_ce.yml
+ansible模块下的playbook中的inventory_file输入如下内容
+/etc/ansible/stage/test/inventory
+ansible模块下的playbook中的extra_vars输入如下内容
+docker_compose_download_url=http://*******
+```
+（图13）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-114853.png)

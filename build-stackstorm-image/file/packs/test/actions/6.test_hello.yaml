@@ -5,7 +5,7 @@ description: 在容器内输出hello！
 enabled: true
 entry_point: shell/6.test_hello.sh
 parameters:
-    greeting:
+    name:
         type: string
         description: 输出任意内容将输出出来
         default: 'name'
