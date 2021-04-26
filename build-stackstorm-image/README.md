@@ -660,37 +660,19 @@ action:    #执行的任务
 说明当触发器core.st2.CronTimer时间到每天8点时，执行test.6.test_hello任务
 
 （图14）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-111148.png)
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210426-122021.png)
 
-build-stackstorm-image/file/packs/test/actions/workflows/5.install_docker_ce.yaml脚本文件
-```shell
-version: 1.0   #版本
-description: 用ansible在指定宿主机内安装docker-ce最新版本和docker-compose，需要目标主机连外网   #本脚本说明
-input:    #调用build-stackstorm-image/file/packs/test/actions/5.install_docker_ce.yaml下的输入框内容
-- docker_compose_download_url    #输入框名称
-tasks:    #脚本
-  install_docker_ce:    #第一个脚本名称
-    action: ansible.playbook    #调用ansible下的playbook模块
-    input:    #在分行写的格式下需要调用输入框内容，则在调用输入框内容上层填写input
-      playbook: /etc/ansible/playbooks/test/install_docker_ce.yml    #在ansible.playbook下的playbook空内填入的值
-      inventory_file: /etc/ansible/stage/test/inventory   #在ansible.playbook下的inventory_file空内填入的值
-      extra_vars:   #在ansible.playbook下的extra_vars空内填入的值，如果值比较多，则按照此格式填写
-        - docker_compose_download_url="{{ ctx("docker_compose_download_url") }}"    #设置的变量（名称=值），这里调用actions/5.install_docker_ce.yaml文件的docker_compose_download_url输入框
-```
+也可在web页面建立规则，在RULES页面单击做下角的加号，如图15
 
-actions/5.install_docker_ce.yaml和actions/workflows/5.install_docker_ce.yaml文件关系图如图9
+（图15）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210426-125112.png)
 
-（图12）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-114056.png)
+填入相应内容，单击CREATE创建，与配置文件关系图如下，如16
 
-实际例4编写的两个脚本的功能可以在ansible模块下的playbook中的playbook、inventory_file、extra_vars中输入如下内容执行后和例4结果相同，如图13
-```shell
-ansible模块下的playbook中的playbook输入如下内容
-/etc/ansible/playbooks/test/install_docker_ce.yml
-ansible模块下的playbook中的inventory_file输入如下内容
-/etc/ansible/stage/test/inventory
-ansible模块下的playbook中的extra_vars输入如下内容
-docker_compose_download_url=http://*******
-```
-（图13）
-![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210425-114853.png)
+（图16）
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210426-124923.png)
+
+创建完成如图17
+![Image text](https://raw.githubusercontent.com/liyuleizhang/img/main/stackstorm/WX20210426-125443.png)
+
+
